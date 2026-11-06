@@ -14,7 +14,7 @@ Node.js 22 이상에서 `cd apps/web`, `npm ci`, `npm run dev`를 실행합니�
 
 ## Supabase 인증 설정
 
-`apps/web/.env.example`을 `.env.local`로 복사하고 Supabase 프로젝트 URL과 publishable key를 설정합니다. 서버 비밀키는 사용하지 않습니다. Supabase Auth의 Site URL과 허용된 Redirect URL은 실제 실행 주소에 맞춰 설정해야 합니다. 이메일 확인 링크와 회원가입·로그인 전 과정은 실제 메일 환경에서 검증해야 합니다. 조직, 멤버십, RLS 및 감사 기능은 아직 구현되지 않았으므로 실제 기밀 데이터를 저장해서는 안 됩니다.
+`apps/web/.env.example`을 `.env.local`로 복사하고 Supabase 프로젝트 URL과 publishable key를 설정합니다. 서버 비밀키는 사용하지 않습니다. `PAVIS_SITE_URL`을 실제 서비스 주소로 설정하고 Supabase Auth의 Site URL과 허용 Redirect URL에 해당 주소의 `/auth/callback`을 등록해야 합니다. 운영 환경에서는 HTTPS만 허용합니다. 이메일 확인 링크와 회원가입·로그인 전 과정은 실제 메일 환경에서 검증해야 합니다. 조직, 멤버십, RLS 및 감사 기능은 아직 구현되지 않았으므로 실제 기밀 데이터를 저장해서는 안 됩니다.
 
 ## 조직 기반 (Phase 0C)
 
