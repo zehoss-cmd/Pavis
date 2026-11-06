@@ -19,3 +19,13 @@ Node.js 22 이상에서 `cd apps/web`, `npm ci`, `npm run dev`를 실행합니�
 ## 조직 기반 (Phase 0C)
 
 조직과 최초 관리자 멤버십, 조직 생성 감사 이벤트를 원자적으로 생성합니다. 사용자는 자신의 활성 멤버십에 연결된 조직을 조회하며, 관리자는 해당 조직의 감사 기록을 조회합니다. 조직·멤버십 수정, 초대 및 삭제는 아직 제공하지 않습니다. 마이그레이션은 `supabase/migrations`, 롤백되는 격리 검증은 `supabase/tests/organization_isolation.sql`을 참고하세요. 이메일 인증 전체 흐름과 실제 브라우저 테스트는 아직 필요합니다.
+
+## Vercel 배포 설정
+
+Vercel에서 `zehoss-cmd/Pavis` 저장소를 가져오고 Root Directory를 `apps/web`으로 지정합니다. Next.js 프레임워크를 선택하고 다음 환경변수를 설정합니다.
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Supabase publishable key
+- `PAVIS_SITE_URL`: 실제 배포 HTTPS 주소 (끝에 경로 없이 입력)
+
+Supabase Authentication의 URL Configuration에서 Site URL을 배포 주소로 설정하고, Redirect URLs에 `https://배포주소/auth/callback`을 추가합니다. 배포 주소가 확정된 후 `PAVIS_SITE_URL`을 설정하고 다시 배포합니다. 이메일 확인부터 로그인, 조직 생성과 로그아웃까지 실제 환경에서 검증해야 합니다. service role 또는 secret key를 브라우저 환경변수에 넣지 않습니다.
