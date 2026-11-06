@@ -15,3 +15,7 @@ Node.js 22 이상에서 `cd apps/web`, `npm ci`, `npm run dev`를 실행합니�
 ## Supabase 인증 설정
 
 `apps/web/.env.example`을 `.env.local`로 복사하고 Supabase 프로젝트 URL과 publishable key를 설정합니다. 서버 비밀키는 사용하지 않습니다. Supabase Auth의 Site URL과 허용된 Redirect URL은 실제 실행 주소에 맞춰 설정해야 합니다. 이메일 확인 링크와 회원가입·로그인 전 과정은 실제 메일 환경에서 검증해야 합니다. 조직, 멤버십, RLS 및 감사 기능은 아직 구현되지 않았으므로 실제 기밀 데이터를 저장해서는 안 됩니다.
+
+## 조직 기반 (Phase 0C)
+
+조직과 최초 관리자 멤버십, 조직 생성 감사 이벤트를 원자적으로 생성합니다. 사용자는 자신의 활성 멤버십에 연결된 조직을 조회하며, 관리자는 해당 조직의 감사 기록을 조회합니다. 조직·멤버십 수정, 초대 및 삭제는 아직 제공하지 않습니다. 마이그레이션은 `supabase/migrations`, 롤백되는 격리 검증은 `supabase/tests/organization_isolation.sql`을 참고하세요. 이메일 인증 전체 흐름과 실제 브라우저 테스트는 아직 필요합니다.
