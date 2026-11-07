@@ -10,7 +10,7 @@ export async function login(form: FormData) {
   const { error } = await supabase.auth.signInWithPassword(credentials(form));
   if (error) {
     console.error('PAVIS auth login failed', { status: error.status, code: error.code });
-    redirect(`/login?error=1&status=${Number.isInteger(error.status) ? error.status : 0}`);
+    redirect('/login?error=1');
   }
   redirect('/account');
 }
@@ -26,7 +26,7 @@ export async function signup(form: FormData) {
   const { error } = await supabase.auth.signUp({ ...values, options: { emailRedirectTo: callback.toString() } });
   if (error) {
     console.error('PAVIS auth signup failed', { status: error.status, code: error.code });
-    redirect(`/signup?error=1&status=${Number.isInteger(error.status) ? error.status : 0}`);
+    redirect('/signup?error=1');
   }
   redirect('/login?check=1');
 }
