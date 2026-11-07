@@ -37,3 +37,5 @@ Supabase Authentication의 URL Configuration에서 Site URL을 배포 주소로 
 Docker, PostgreSQL client (`psql`), Supabase CLI 2.122.1이 필요합니다. 저장소 루트에서 `supabase db start`, `supabase db reset --local --no-seed`, `bash scripts/test-db.sh`를 순서대로 실행합니다. 이 명령은 로컬 Supabase DB를 초기화하므로 로컬 테스트 데이터를 지웁니다. 테스트는 로컬 `127.0.0.1:54322`에만 연결하고 각 시나리오의 데이터를 롤백합니다. CI도 동일한 절차를 새 데이터베이스에서 실행합니다.
 
 내 프로필에서 표시 이름을 설정할 수 있습니다. 프로필은 본인만 조회·수정하며 조직 멤버에게 자동으로 공개되지 않습니다. 구성원 초대는 보류 중입니다.
+
+조직 관리자는 조직 상세의 활동 이력에서 최근 50건의 조직 생성 및 구성원 권한·상태 변경을 확인할 수 있습니다. 현재 기록은 변경 전후 값까지 저장하지 않습니다.
