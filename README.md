@@ -29,3 +29,5 @@ Vercel에서 `zehoss-cmd/Pavis` 저장소를 가져오고 Root Directory를 `app
 - `PAVIS_SITE_URL`: 실제 배포 HTTPS 주소 (끝에 경로 없이 입력)
 
 Supabase Authentication의 URL Configuration에서 Site URL을 배포 주소로 설정하고, Redirect URLs에 `https://배포주소/auth/callback`을 추가합니다. 배포 주소가 확정된 후 `PAVIS_SITE_URL`을 설정하고 다시 배포합니다. 이메일 확인부터 로그인, 조직 생성과 로그아웃까지 실제 환경에서 검증해야 합니다. service role 또는 secret key를 브라우저 환경변수에 넣지 않습니다.
+
+조직 관리자 화면에서 기존 구성원의 역할과 활성 상태를 변경할 수 있습니다. 데이터베이스에서 관리자 권한을 확인하고 마지막 활성 관리자를 보호하며 변경을 감사 기록에 남깁니다. 구성원 초대 및 이메일 발송은 아직 구현되지 않았습니다. 권한 회귀 검증 SQL은 `supabase/tests/membership_admin.sql`에 있습니다.
