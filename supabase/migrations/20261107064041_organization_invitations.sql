@@ -70,7 +70,7 @@ language plpgsql security definer set search_path='' as $$
 declare actor uuid:=auth.uid(); verified_email text; invite public.organization_invitations%rowtype;
 begin
  if actor is null then raise exception 'not authorized' using errcode='42501'; end if;
- select lower(btrim(u.email)) into verified_email from auth.users u where u.id=actor and u.email_confirmed_at is not null and u.is_anonymous is not true;
+ select lower(btrim(u.email)) into verified_email from auth.users u where u.id=actor and u.email_confirmed_at is not null and u.is_anonymous is not true for update;
  select * into invite from public.organization_invitations where id=p_invite;
  if not found or verified_email is null or invite.email<>verified_email or invite.status<>'pending' or invite.expires_at<=now() then raise exception 'invitation unavailable' using errcode='42501'; end if;
  perform 1 from public.organizations where id=invite.organization_id for update;
