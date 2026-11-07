@@ -31,3 +31,7 @@ Vercel에서 `zehoss-cmd/Pavis` 저장소를 가져오고 Root Directory를 `app
 Supabase Authentication의 URL Configuration에서 Site URL을 배포 주소로 설정하고, Redirect URLs에 `https://배포주소/auth/callback`을 추가합니다. 배포 주소가 확정된 후 `PAVIS_SITE_URL`을 설정하고 다시 배포합니다. 이메일 확인부터 로그인, 조직 생성과 로그아웃까지 실제 환경에서 검증해야 합니다. service role 또는 secret key를 브라우저 환경변수에 넣지 않습니다.
 
 조직 관리자 화면에서 기존 구성원의 역할과 활성 상태를 변경할 수 있습니다. 데이터베이스에서 관리자 권한을 확인하고 마지막 활성 관리자를 보호하며 변경을 감사 기록에 남깁니다. 구성원 초대 및 이메일 발송은 아직 구현되지 않았습니다. 권한 회귀 검증 SQL은 `supabase/tests/membership_admin.sql`에 있습니다.
+
+## 로컬 데이터베이스 보안 테스트
+
+Docker, PostgreSQL client (`psql`), Supabase CLI 2.122.1이 필요합니다. 저장소 루트에서 `supabase db start`, `supabase db reset --local --no-seed`, `bash scripts/test-db.sh`를 순서대로 실행합니다. 이 명령은 로컬 Supabase DB를 초기화하므로 로컬 테스트 데이터를 지웁니다. 테스트는 로컬 `127.0.0.1:54322`에만 연결하고 각 시나리오의 데이터를 롤백합니다. CI도 동일한 절차를 새 데이터베이스에서 실행합니다.

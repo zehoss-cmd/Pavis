@@ -1,0 +1,23 @@
+name: Database security checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.1
+      - name: Start local Postgres
+        run: supabase db start
+      - name: Apply migrations from scratch
+        run: supabase db reset --local --no-seed
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Run tenant isolation and member role tests
+        run: bash scripts/test-db.sh
