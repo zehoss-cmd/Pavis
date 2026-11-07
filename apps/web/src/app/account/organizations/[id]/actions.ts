@@ -16,3 +16,26 @@ export async function updateMember(form: FormData) {
   if (error) redirect(`/account/organizations/${org}?error=1`);
   redirect(`/account/organizations/${org}?updated=1`);
 }
+export async function createInvitation(form: FormData) {
+  const org=String(form.get('organization') || '');
+  const email=String(form.get('email') || '').trim().toLowerCase();
+  const role=String(form.get('role') || '');
+  if (!uuid.test(org)) redirect('/account?error=1');
+  if (email.length>254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !['ip_manager','analyst','licensing_manager','viewer'].includes(role)) redirect(`/account/organizations/${org}?invite_error=1`);
+  const supabase=await createClient();
+  const {data:{user},error:authError}=await supabase.auth.getUser();
+  if(authError || !user) redirect('/login');
+  const {error}=await supabase.rpc('create_organization_invitation',{p_org:org,p_email:email,p_role:role});
+  if(error) redirect(`/account/organizations/${org}?invite_error=1`);
+  redirect(`/account/organizations/${org}?invited=1`);
+}
+export async function revokeInvitation(form: FormData) {
+  const org=String(form.get('organization') || ''),invite=String(form.get('invitation') || '');
+  if(!uuid.test(org) || !uuid.test(invite)) redirect('/account?error=1');
+  const supabase=await createClient();
+  const {data:{user},error:authError}=await supabase.auth.getUser();
+  if(authError || !user) redirect('/login');
+  const {error}=await supabase.rpc('revoke_organization_invitation',{p_org:org,p_invite:invite});
+  if(error) redirect(`/account/organizations/${org}?invite_error=1`);
+  redirect(`/account/organizations/${org}?revoked=1`);
+}
