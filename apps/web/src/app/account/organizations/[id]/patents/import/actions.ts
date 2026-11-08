@@ -42,7 +42,8 @@ export async function previewCsv(_state:ImportState,form:FormData):Promise<Impor
     try {text=new TextDecoder('utf-8',{fatal:true}).decode(buffer);} catch {return fail('UTF-8 형식으로 저장된 CSV 파일을 사용해 주세요.');}
     parsed=parsePatentCsv(text);
   }
-  if(parsed.errors.length) return {stage:'preview',...parsed};
+  if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
+  if(Buffer.byteLength(JSON.stringify(parsed.rows),'utf8')>maxCsvBytes*2) return fail('검토할 내용이 너무 큽니다. 파일을 나누어 가져와 주세요.');
   try {return {stage:'preview',rows:parsed.rows,errors:await duplicateErrors(context.supabase,context.org,parsed.rows)};}
   catch {return fail('중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
@@ -50,7 +51,7 @@ export async function commitCsv(_state:ImportState,form:FormData):Promise<Import
   const context=await access(form);
   if(!context) return fail('특허를 등록할 권한이 없습니다.');
   const payload=form.get('rows');
-  if(typeof payload!=='string' || payload.length>maxCsvBytes*2) return fail('가져올 데이터가 올바르지 않습니다. 다시 미리보기해 주세요.');
+  if(typeof payload!=='string' || Buffer.byteLength(payload,'utf8')>maxCsvBytes*2) return fail('가져올 데이터가 올바르지 않습니다. 다시 미리보기해 주세요.');
   let input:unknown;try {input=JSON.parse(payload);}catch{return fail('가져올 데이터가 올바르지 않습니다. 다시 미리보기해 주세요.');}
   const parsed=validateRows(input);
   if(parsed.errors.length) return {stage:'error',rows:[],errors:parsed.errors};
