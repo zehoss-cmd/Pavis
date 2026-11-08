@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';
 import { restoreRecord } from './actions';
 type Entry={id:string;kind:string;name:string;deleted_at:string;expires_at:string};
-const kinds:Record<string,string>={asset:'특허',family:'패밀리',portfolio:'포트폴리오',legal_event:'법적 상태 이력'};
+const kinds:Record<string,string>={asset:'특허',family:'패밀리',portfolio:'포트폴리오',legal_event:'법적 상태 이력',valuation:'정성평가 초안'};
 export default async function RecycleBin({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{error?:string;restored?:string}>}) {
  const {id}=await params,flags=await searchParams;
  const {supabase,organization,canWrite}=await patentAccess(id);
