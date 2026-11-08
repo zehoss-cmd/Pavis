@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { canPerformOrganizationAction } from '@/domain/organizations/authorization';
 import { updateMember, createInvitation, revokeInvitation } from './actions';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const roles = [{id:'admin',name:'관리자'},{id:'ip_manager',name:'IP 관리자'},{id:'analyst',name:'평가 담당자'},{id:'licensing_manager',name:'라이선싱 담당자'},{id:'viewer',name:'조회자'}];
@@ -14,8 +15,8 @@ export default async function Organization({params,searchParams}:{params:Promise
   if(authError||!user) redirect('/login');
   const {data:organization}=await supabase.from('organizations').select('id,name').eq('id',id).maybeSingle();
   if(!organization) notFound();
-  const {data:membership}=await supabase.from('organization_members').select('role').eq('organization_id',id).eq('user_id',user.id).maybeSingle();
-  const isAdmin=membership?.role==='admin';
+  const {data:membership}=await supabase.from('organization_members').select('role,status').eq('organization_id',id).eq('user_id',user.id).maybeSingle();
+  const isAdmin=canPerformOrganizationAction(membership?.role,membership?.status,'members.manage');
   const result=isAdmin ? await supabase.rpc('list_organization_members',{p_org:id}) : null;
   const members=(result?.data || []) as Member[];
   const inviteResult=isAdmin ? await supabase.rpc('list_organization_invitations',{p_org:id}) : null;

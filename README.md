@@ -30,3 +30,5 @@ Vercel의 Root Directory를 `apps/web`으로 설정하고 아래 환경변수를
 - `PAVIS_SITE_URL`: 실제 HTTPS 배포 주소
 
 Supabase Auth의 Site URL을 배포 주소로 설정하고 Redirect URLs에 `https://배포주소/auth/callback`을 추가합니다. 환경변수를 변경하면 재배포합니다. 초대 자동 발송을 지원하려면 별도 메일 발송 기능도 구현해야 합니다.
+
+조직의 현재 화면 권한 기준은 `apps/web/src/domain/organizations/authorization.ts`에 있으며 활성 구성원의 조직 조회 및 관리자 전용 멤버·초대·감사 기능만 포함합니다. 이 기준은 화면/서버의 추가 검사이며 데이터베이스 RLS와 함수의 권한 검사를 대체하지 않습니다. 특허·평가·라이선싱 권한은 아직 확정되지 않았습니다. 웹 단위 테스트는 `cd apps/web && npm test`로 실행합니다.

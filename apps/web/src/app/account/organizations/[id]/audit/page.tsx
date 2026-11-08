@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { canPerformOrganizationAction } from '@/domain/organizations/authorization';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const labels: Record<string, string> = {
@@ -20,8 +21,8 @@ export default async function AuditPage({params}: {params: Promise<{id: string}>
   const supabase = await createClient();
   const {data:{user},error:authError} = await supabase.auth.getUser();
   if (authError || !user) redirect('/login');
-  const {data:membership} = await supabase.from('organization_members').select('role').eq('organization_id',id).eq('user_id',user.id).maybeSingle();
-  if (membership?.role !== 'admin') notFound();
+  const {data:membership} = await supabase.from('organization_members').select('role,status').eq('organization_id',id).eq('user_id',user.id).maybeSingle();
+  if (!canPerformOrganizationAction(membership?.role,membership?.status,'audit.read')) notFound();
   const [{data:organization},{data:entries,error:logError},{data:memberData,error:memberError}] = await Promise.all([
     supabase.from('organizations').select('name').eq('id',id).maybeSingle(),
     supabase.from('audit_logs').select('id,actor_user_id,action,target_id,occurred_at,previous_role,new_role,previous_status,new_status').eq('organization_id',id).order('occurred_at',{ascending:false}).order('id',{ascending:false}).limit(50),
