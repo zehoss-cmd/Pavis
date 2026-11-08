@@ -13,12 +13,14 @@ export async function manageValuation(form:FormData) {
   if(result.error||!result.data) redirect(`${path}?error=${op==='finalize'?'evidence':'save'}`);
   redirect(`${path}?${op}=1`);
  }
+ const model=read(form,'model');
+ if(op==='create' && model && !uuid.test(model)) redirect(`${path}?error=invalid`);
  const assessment_date=read(form,'assessment_date'),date=new Date(`${assessment_date}T00:00:00Z`);
  const dimensions=['legal','technical','market','commercial'] as const;
  const scores=dimensions.map(d=>read(form,`${d}_score`)),notes=dimensions.map(d=>read(form,`${d}_note`));
  if(!/^\d{4}-\d{2}-\d{2}$/.test(assessment_date)||Number.isNaN(date.valueOf())||date.toISOString().slice(0,10)!==assessment_date||scores.some(s=>!['0','1','2','3','4','5'].includes(s))||notes.some(n=>Array.from(n).length>1000)) redirect(`${path}?error=invalid`);
  const values={assessment_date,legal_score:Number(scores[0]),technical_score:Number(scores[1]),market_score:Number(scores[2]),commercial_score:Number(scores[3]),legal_note:notes[0]||null,technical_note:notes[1]||null,market_note:notes[2]||null,commercial_note:notes[3]||null};
- const result=op==='create'?await supabase.from('valuation_assessments').insert({...values,organization_id:org,asset_id:asset}).select('id').maybeSingle():await supabase.from('valuation_assessments').update(values).eq('organization_id',org).eq('id',id).eq('status','draft').select('id').maybeSingle();
+ const result=op==='create'?await supabase.from('valuation_assessments').insert({...values,organization_id:org,asset_id:asset,model_id:model||null}).select('id').maybeSingle():await supabase.from('valuation_assessments').update(values).eq('organization_id',org).eq('id',id).eq('status','draft').select('id').maybeSingle();
  if(result.error||!result.data) redirect(`${path}?error=save`);
  redirect(`${path}?${op}=1`);
 }
