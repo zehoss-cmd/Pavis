@@ -14,6 +14,9 @@ const labels: Record<string, string> = {
   'patent.family.updated': '특허 패밀리 수정',
   'patent.asset.created': '특허 자산 등록',
   'patent.asset.updated': '특허 자산 수정',
+  'patent.portfolio.created': '포트폴리오 생성',
+  'patent.portfolio.asset.added': '포트폴리오 특허 연결',
+  'patent.portfolio.asset.removed': '포트폴리오 특허 연결 해제',
 };
 const roles: Record<string, string> = {admin:'관리자',ip_manager:'IP 관리자',analyst:'평가 담당자',licensing_manager:'라이선싱 담당자',viewer:'조회자'};
 const statuses: Record<string, string> = {active:'활성',inactive:'비활성'};
