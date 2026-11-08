@@ -14,6 +14,9 @@ select count(*) into n from public.list_organization_members(current_setting('te
 begin perform public.set_organization_member(current_setting('test.org')::uuid,auth.uid(),'viewer','active'); raise exception 'last admin demotion succeeded'; exception when check_violation then null; end;
 perform public.set_organization_member(current_setting('test.org')::uuid,'20000000-0000-4000-8000-000000000002','analyst','active');
 select count(*) into n from public.audit_logs where action='organization.member.updated'; if n<>1 then raise exception 'audit missing'; end if;
+select count(*) into n from public.audit_logs where action='organization.member.updated' and previous_role='viewer' and new_role='analyst' and previous_status='active' and new_status='active'; if n<>1 then raise exception 'audit change details incorrect'; end if;
+perform public.set_organization_member(current_setting('test.org')::uuid,'20000000-0000-4000-8000-000000000002','analyst','active');
+select count(*) into n from public.audit_logs where action='organization.member.updated'; if n<>1 then raise exception 'no-op created audit record'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
 do $$ begin

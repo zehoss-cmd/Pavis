@@ -9,7 +9,7 @@ Patent Asset Valuation & Intelligence System. 특허 자산과 가치평가·라
 - 이메일 인증된 계정의 조직 초대 등록·취소·수락. 초대는 7일 동안 유효하며 자동 이메일은 발송하지 않으므로 관리자가 PAVIS 주소를 직접 전달해야 합니다.
 - 조직별 접근 통제와 프로필 보호를 위한 데이터베이스 RLS, GitHub 웹·DB 보안 테스트
 
-기존 감사 이력은 역할 변경 전후 값을 저장하지 않습니다. 업무별 상세 권한과 특허 자산 기능은 후속 개발 범위입니다. Supabase 기본 SMTP는 테스트용이므로 일반 외부 사용자에게 가입 인증 메일을 보내려면 별도 SMTP 설정이 필요합니다. 상세 정책과 보안 검토를 마치기 전에는 기밀 특허·협상 자료를 올리지 마세요.
+구성원 역할·상태의 변경 전후 값은 기능 적용 후 발생한 이력부터 기록됩니다. 이전 이력은 상세 값이 없습니다. 업무별 상세 권한과 특허 자산 기능은 후속 개발 범위입니다. Supabase 기본 SMTP는 테스트용이므로 일반 외부 사용자에게 가입 인증 메일을 보내려면 별도 SMTP 설정이 필요합니다. 상세 정책과 보안 검토를 마치기 전에는 기밀 특허·협상 자료를 올리지 마세요.
 
 설계 기준: [Master Blueprint](https://app.notion.com/p/4108cefac5ca81008655e8a10c460ef5), [시스템 아키텍처 초안](https://app.notion.com/p/4108cefac5ca8132aa06cb033c9ca309), [DB·ERD 초안](https://app.notion.com/p/4108cefac5ca814eb9b8cedd6a0d619b), [개발 현황](https://app.notion.com/p/4108cefac5ca81eb8b6dd37990fe5e93).
 
