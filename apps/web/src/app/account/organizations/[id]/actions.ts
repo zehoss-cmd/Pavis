@@ -39,3 +39,14 @@ export async function revokeInvitation(form: FormData) {
   if(error) redirect(`/account/organizations/${org}?invite_error=1`);
   redirect(`/account/organizations/${org}?revoked=1`);
 }
+
+export async function deleteOrganization(form: FormData) {
+  const id = String(form.get('organization') || '');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) redirect('/account');
+  const supabase = await createClient();
+  const {data:{user},error:authError}=await supabase.auth.getUser();
+  if(authError || !user) redirect('/login');
+  const {error}=await supabase.rpc('delete_empty_organization',{p_org:id});
+  if(error) redirect(`/account/organizations/${id}?delete_error=${error.code==='P0001'?'not_empty':'failed'}`);
+  redirect('/account?deleted=1');
+}

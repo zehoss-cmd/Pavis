@@ -23,3 +23,14 @@ export async function acceptInvitation(form: FormData) {
   if (error) redirect('/account?invite_error=1');
   redirect('/account?joined=1');
 }
+
+export async function restoreOrganization(form: FormData) {
+  const id = String(form.get('record') || '');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) redirect('/account?restore_error=1');
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/login');
+  const { error } = await supabase.rpc('restore_deleted_organization', { p_id: id });
+  if (error) redirect('/account?restore_error=1');
+  redirect('/account?restored=1');
+}

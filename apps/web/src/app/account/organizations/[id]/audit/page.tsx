@@ -6,6 +6,8 @@ import { canPerformOrganizationAction } from '@/domain/organizations/authorizati
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const labels: Record<string, string> = {
   'organization.created': '조직 생성',
+  'organization.deleted': '조직 삭제',
+  'organization.restored': '조직 복구',
   'organization.member.updated': '구성원 권한 또는 상태 변경',
   'organization.invitation.created': '구성원 초대 등록',
   'organization.invitation.revoked': '구성원 초대 취소',
