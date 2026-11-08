@@ -28,6 +28,11 @@ do $$ begin
 begin perform * from public.list_organization_members(current_setting('test.org')::uuid); raise exception 'cross tenant list succeeded'; exception when insufficient_privilege then null; end;
 begin perform public.set_organization_member(current_setting('test.org')::uuid,'20000000-0000-4000-8000-000000000002','admin','active'); raise exception 'cross tenant update succeeded'; exception when insufficient_privilege then null; end;
 end $$;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
+do $$ declare n int; begin
+perform public.set_organization_member(current_setting('test.org')::uuid,'20000000-0000-4000-8000-000000000002','analyst','inactive');
+select count(*) into n from public.audit_logs where action='organization.member.updated' and previous_role='analyst' and new_role='analyst' and previous_status='active' and new_status='inactive'; if n<>1 then raise exception 'status audit details incorrect'; end if;
+end $$;
 set local role anon;
 do $$ begin
 begin perform * from public.list_organization_members(current_setting('test.org')::uuid); raise exception 'anonymous list succeeded'; exception when insufficient_privilege then null; end;
