@@ -7,3 +7,4 @@
 .audit-list{list-style:none;padding:0;margin:26px 0}.audit-list li{display:grid;gap:6px;border-top:1px solid #edf1f6;padding:18px 0}.audit-list strong{font-size:15px}.audit-list span,.audit-list time{font-size:13px;color:#8490a2}
 
 .invite-row{padding:16px 0;border-top:1px solid #edf1f6;display:grid;gap:8px}.invite-row span{font-size:13px;color:#8490a2}.invite-row form{margin:0}.invite-row button{font-size:13px;padding:10px 14px;background:#eef3ff;color:#326df2}
+.patent-card{max-width:720px}.asset-list{list-style:none;padding:0;margin:24px 0}.asset-list li{border-top:1px solid #edf1f6;padding:16px 0}.asset-list a{display:grid;gap:6px}.asset-list span{color:#8490a2;font-size:13px}.patent-form p{font-size:13px;line-height:1.6;color:#8490a2}.search-form{padding-top:12px}

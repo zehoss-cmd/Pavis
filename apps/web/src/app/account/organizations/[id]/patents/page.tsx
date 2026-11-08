@@ -1,0 +1,14 @@
+import Link from 'next/link';
+import { patentAccess } from '@/lib/patents/access';
+import { createFamily } from './actions';
+import { AssetForm,statusLabels,type Asset,type Family } from './form';
+export default async function Patents({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{q?:string;error?:string;family_created?:string}>}) {
+  const {id}=await params, flags=await searchParams;
+  const {supabase,organization,canWrite}=await patentAccess(id);
+  const q=typeof flags.q==='string' ? flags.q.trim().slice(0,100) : '';
+  let query=supabase.from('patent_assets').select('id,title,jurisdiction,application_number,legal_status').eq('organization_id',id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(100);
+  if(q) query=query.ilike('title',`%${q.replace(/[\\%_]/g,'\\$&')}%`);
+  const [{data:assets,error:assetError},{data:families,error:familyError}]=await Promise.all([query,supabase.from('patent_families').select('id,name').eq('organization_id',id).order('name').limit(200)]);
+  const familyList=(families || []) as Family[];
+  return <main className="auth-page"><Link href={`/account/organizations/${id}`} className="logo">◈ <span>PAVIS</span></Link><div className="auth-card patent-card"><p className="eyebrow">PATENT ASSETS</p><h1>특허 자산</h1><p>{organization.name}의 특허를 살펴보세요.</p><p>법적 상태와 권리 정보는 입력한 출처에서 별도 확인이 필요합니다.</p>{flags.family_created && <p className="form-message" role="status">패밀리를 만들었습니다.</p>}{flags.error && <p className="form-message" role="alert">{flags.error==='duplicate' ? '같은 국가에 동일한 출원번호가 이미 등록되어 있습니다.' : '저장하지 못했습니다. 입력 내용과 권한을 확인해 주세요.'}</p>}<form method="get" className="search-form"><label>발명의 명칭 검색<input type="search" name="q" maxLength={100} defaultValue={q} placeholder="검색어를 입력하세요"/></label><button type="submit">검색</button></form>{assetError ? <p className="form-message" role="alert">특허 목록을 불러오지 못했습니다.</p> : assets?.length ? <><p>최근 등록순 · 최대 100건</p><ul className="asset-list">{assets.map((asset:Pick<Asset,'id'|'title'|'jurisdiction'|'application_number'|'legal_status'>)=><li key={asset.id}><Link href={`/account/organizations/${id}/patents/${asset.id}`}><strong>{asset.title}</strong><span>{asset.jurisdiction} · {asset.application_number || '출원번호 미입력'} · {statusLabels[asset.legal_status] || '미확인'}</span></Link></li>)}</ul></> : <p>{q ? '검색 결과가 없습니다.' : '아직 등록된 특허가 없습니다.'}</p>}{familyError && <p className="form-message" role="alert">패밀리 목록을 불러오지 못했습니다.</p>}{canWrite && !familyError && <><h2>패밀리 만들기</h2><form action={createFamily}><input type="hidden" name="organization" value={id}/><label>패밀리 이름<input name="name" maxLength={200} required/></label><button type="submit">패밀리 생성</button></form><h2>특허 등록</h2><AssetForm org={id} families={familyList}/></>}<Link href={`/account/organizations/${id}`}>← 조직 관리로</Link></div></main>;
+}

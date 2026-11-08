@@ -10,6 +10,10 @@ const labels: Record<string, string> = {
   'organization.invitation.created': '구성원 초대 등록',
   'organization.invitation.revoked': '구성원 초대 취소',
   'organization.invitation.accepted': '구성원 초대 수락',
+  'patent.family.created': '특허 패밀리 등록',
+  'patent.family.updated': '특허 패밀리 수정',
+  'patent.asset.created': '특허 자산 등록',
+  'patent.asset.updated': '특허 자산 수정',
 };
 const roles: Record<string, string> = {admin:'관리자',ip_manager:'IP 관리자',analyst:'평가 담당자',licensing_manager:'라이선싱 담당자',viewer:'조회자'};
 const statuses: Record<string, string> = {active:'활성',inactive:'비활성'};
