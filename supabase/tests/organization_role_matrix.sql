@@ -25,10 +25,19 @@ do $$ declare n integer; seen integer; actor uuid; begin
     if seen <> (case when n=1 then 1 else 0 end) then raise exception 'audit policy mismatch for role %',n; end if;
     if n=1 then
       perform * from public.list_organization_members('51000000-0000-4000-8000-000000000001');
+      perform * from public.list_organization_invitations('51000000-0000-4000-8000-000000000001');
     else
       begin
         perform * from public.list_organization_members('51000000-0000-4000-8000-000000000001');
         raise exception 'non-admin membership list allowed for role %',n;
+      exception when insufficient_privilege then null; end;
+      begin
+        perform * from public.list_organization_invitations('51000000-0000-4000-8000-000000000001');
+        raise exception 'non-admin invitation list allowed for role %',n;
+      exception when insufficient_privilege then null; end;
+      begin
+        perform public.create_organization_invitation('51000000-0000-4000-8000-000000000001','role-matrix-target@example.invalid','viewer');
+        raise exception 'non-admin invitation creation allowed for role %',n;
       exception when insufficient_privilege then null; end;
     end if;
   end loop;
