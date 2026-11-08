@@ -38,13 +38,17 @@ export function validateRows(input:unknown):CsvResult {
   });
   return {rows,errors};
 }
+export function parsePatentTable(data:string[][]):CsvResult {
+  if(data.length<2) return {rows:[],errors:['제목 행과 데이터 행이 필요합니다.']};
+  if(data.length-1>maxCsvRows) return {rows:[],errors:[`한 번에 최대 ${maxCsvRows}건까지 가져올 수 있습니다.`]};
+  const header=data[0].map(value=>value.trim());
+  if(new Set(header).size!==header.length || header.some(key=>!csvHeaders.includes(key as CsvHeader)) || !['title','jurisdiction','application_number'].every(key=>header.includes(key))) return {rows:[],errors:['제목 행을 확인해 주세요. title, jurisdiction, application_number는 필수이며, 안내된 열 이름만 사용할 수 있습니다.']};
+  if(data.slice(1).some(row=>row.length>header.length && row.slice(header.length).some(value=>value.trim()))) return {rows:[],errors:['제목이 없는 열에 데이터가 있습니다. 열 이름을 확인해 주세요.']};
+  return validateRows(data.slice(1).map(row=>Object.fromEntries(header.map((key,i)=>[key,row[i]??'']))));
+}
 export function parsePatentCsv(text:string):CsvResult {
   let data:string[][];
   try { data=parse(text,{bom:true,skip_empty_lines:true,relax_column_count:false,max_record_size:maxCsvBytes}) as string[][]; }
   catch {return {rows:[],errors:['CSV 형식이 올바르지 않습니다. 열 개수와 따옴표를 확인해 주세요.']};}
-  if(data.length<2) return {rows:[],errors:['제목 행과 데이터 행이 필요합니다.']};
-  if(data.length-1>maxCsvRows) return {rows:[],errors:[`한 번에 최대 ${maxCsvRows}건까지 가져올 수 있습니다.`]};
-  const header=data[0].map(value=>value.trim());
-  if(new Set(header).size!==header.length || header.some(key=>!csvHeaders.includes(key as CsvHeader)) || !['title','jurisdiction','application_number'].every(key=>header.includes(key))) return {rows:[],errors:['CSV 제목 행을 확인해 주세요. title, jurisdiction, application_number는 필수이며, 안내된 열 이름만 사용할 수 있습니다.']};
-  return validateRows(data.slice(1).map(row=>Object.fromEntries(header.map((key,i)=>[key,row[i]??'']))));
+  return parsePatentTable(data);
 }
