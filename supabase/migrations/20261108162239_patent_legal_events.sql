@@ -45,14 +45,19 @@ begin
  if auth.uid() is null then raise exception 'authentication required' using errcode='42501'; end if;
  k:=case tg_table_name when 'patent_assets' then 'asset' when 'patent_families' then 'family' when 'patent_portfolios' then 'portfolio' when 'patent_legal_events' then 'legal_event' end;
  if k is null then raise exception 'unsupported record'; end if;
- insert into private.registry_recycle_bin(organization_id,kind,record_id,snapshot,deleted_by) values(old.organization_id,k,old.id,to_jsonb(old),auth.uid());
+ if k='legal_event' then
+  insert into private.registry_recycle_bin(organization_id,kind,record_id,snapshot,deleted_by)
+  values(old.organization_id,k,old.id,to_jsonb(old)||jsonb_build_object('_asset_title',(select a.title from public.patent_assets a where a.organization_id=old.organization_id and a.id=old.asset_id)),auth.uid());
+ else
+  insert into private.registry_recycle_bin(organization_id,kind,record_id,snapshot,deleted_by) values(old.organization_id,k,old.id,to_jsonb(old),auth.uid());
+ end if;
  return old;
 end $$;
 create trigger legal_event_archive before delete on public.patent_legal_events for each row execute function private.registry_archive();
 create or replace function private.registry_recycle_list(p_org uuid) returns table(id uuid,kind text,record_id uuid,name text,deleted_at timestamptz,expires_at timestamptz) language plpgsql security definer set search_path='' as $$
 begin
  if auth.uid() is null or not exists(select 1 from public.organization_members m where m.organization_id=p_org and m.user_id=auth.uid() and m.status='active' and m.role in ('admin','ip_manager')) then raise exception 'not authorized' using errcode='42501'; end if;
- return query select r.id,r.kind,r.record_id,coalesce(r.snapshot->>'title',r.snapshot->>'name','법적 상태 이력 · '||(r.snapshot->>'event_date')),r.deleted_at,r.deleted_at+interval '30 days' from private.registry_recycle_bin r where r.organization_id=p_org and r.deleted_at>now()-interval '30 days' order by r.deleted_at desc,r.id desc limit 200;
+ return query select r.id,r.kind,r.record_id,coalesce(r.snapshot->>'title',r.snapshot->>'name',coalesce(r.snapshot->>'_asset_title','특허')||' · '||(r.snapshot->>'event_date')),r.deleted_at,r.deleted_at+interval '30 days' from private.registry_recycle_bin r where r.organization_id=p_org and r.deleted_at>now()-interval '30 days' order by r.deleted_at desc,r.id desc limit 200;
 end $$;
 create or replace function private.registry_recycle_restore(p_org uuid,p_id uuid) returns void language plpgsql security definer set search_path='' as $$
 declare r private.registry_recycle_bin%rowtype; a public.patent_assets%rowtype; f public.patent_families%rowtype; p public.patent_portfolios%rowtype; e public.patent_legal_events%rowtype;

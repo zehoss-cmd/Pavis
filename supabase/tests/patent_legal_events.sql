@@ -34,7 +34,7 @@ do $$ declare n int; begin select count(*) into n from public.patent_legal_event
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000004',true);
 update public.patent_legal_events set note='updated' where id=current_setting('test.event_id')::uuid;
 delete from public.patent_legal_events where id=current_setting('test.event_id')::uuid;
-select set_config('test.event_trash',id::text,true) from public.registry_recycle_list('a1000000-0000-4000-8000-000000000001') where kind='legal_event' and record_id=current_setting('test.event_id')::uuid;
+select set_config('test.event_trash',id::text,true) from public.registry_recycle_list('a1000000-0000-4000-8000-000000000001') where kind='legal_event' and record_id=current_setting('test.event_id')::uuid and name='Patent A · 2025-01-01';
 delete from public.patent_assets where id=current_setting('test.event_asset_a')::uuid;
 select set_config('test.asset_trash',id::text,true) from public.registry_recycle_list('a1000000-0000-4000-8000-000000000001') where kind='asset' and record_id=current_setting('test.event_asset_a')::uuid;
 do $$ begin begin perform public.registry_recycle_restore('a1000000-0000-4000-8000-000000000001',current_setting('test.event_trash')::uuid); raise exception 'history restored without patent'; exception when foreign_key_violation then null; end; end $$;
