@@ -26,10 +26,11 @@ export async function saveAsset(form:FormData) {
   if(!uuid.test(org) || (asset && !uuid.test(asset))) redirect('/account?error=1');
   const back=asset ? `${root(org)}/${asset}` : root(org);
   const title=read(form,'title'), jurisdiction=read(form,'jurisdiction').toUpperCase(), number=read(form,'application_number'), source=read(form,'source'), status=read(form,'legal_status');
+  const publication=read(form,'publication_number'), registration=read(form,'registration_number'), holder=read(form,'rights_holder'), inventors=read(form,'inventors');
   const filing=date(read(form,'filing_date')), priority=date(read(form,'priority_date')), verified=date(read(form,'verified_date'));
-  if(!title || Array.from(title).length>300 || !/^[A-Z]{2}$/.test(jurisdiction) || number.length>100 || source.length>500 || !statuses.includes(status) || (family && !uuid.test(family)) || filing===undefined || priority===undefined || verified===undefined) redirect(`${back}?error=invalid`);
+  if(!title || Array.from(title).length>300 || !/^[A-Z]{2}$/.test(jurisdiction) || number.length>100 || publication.length>100 || registration.length>100 || holder.length>500 || inventors.length>500 || source.length>500 || !statuses.includes(status) || (family && !uuid.test(family)) || filing===undefined || priority===undefined || verified===undefined) redirect(`${back}?error=invalid`);
   const supabase=await clientForUser();
-  const values={family_id:family || null,title,jurisdiction,application_number:number || null,filing_date:filing,priority_date:priority,legal_status:status,source:source || null,verified_date:verified};
+  const values={family_id:family || null,title,jurisdiction,application_number:number || null,publication_number:publication || null,registration_number:registration || null,rights_holder:holder || null,inventors:inventors || null,filing_date:filing,priority_date:priority,legal_status:status,source:source || null,verified_date:verified};
   const result=asset ? await supabase.from('patent_assets').update(values).eq('id',asset).eq('organization_id',org).select('id').maybeSingle() : await supabase.from('patent_assets').insert({...values,organization_id:org}).select('id').single();
   if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23505' ? 'duplicate' : 'save'}`);
   redirect(`${root(org)}/${result.data.id}?saved=1`);

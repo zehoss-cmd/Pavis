@@ -15,10 +15,12 @@ select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002'
 insert into public.patent_families(organization_id,name) values('61000000-0000-4000-8000-000000000002','B family') returning set_config('test.family_b',id::text,true);
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
 insert into public.patent_families(organization_id,name) values('61000000-0000-4000-8000-000000000001','A family') returning set_config('test.family_a',id::text,true);
-insert into public.patent_assets(organization_id,family_id,title,jurisdiction,application_number,source,legal_status)
-select '61000000-0000-4000-8000-000000000001',current_setting('test.family_a')::uuid,'Sample patent '||n,'KR','KR-'||n,'manual','unknown' from generate_series(1,100) n;
+insert into public.patent_assets(organization_id,family_id,title,jurisdiction,application_number,source,legal_status,publication_number,registration_number,rights_holder,inventors)
+select '61000000-0000-4000-8000-000000000001',current_setting('test.family_a')::uuid,'Sample patent '||n,'KR','KR-'||n,'manual','unknown','PUB-'||n,'REG-'||n,'Example holder','Inventor A, Inventor B' from generate_series(1,100) n;
 do $$ declare n int; begin
  select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001'; if n<>100 then raise exception '100 assets not visible: %',n; end if;
+ select count(*) into n from public.patent_assets where publication_number='PUB-1' and registration_number='REG-1' and rights_holder='Example holder' and inventors='Inventor A, Inventor B'; if n<>1 then raise exception 'patent identification fields not saved'; end if;
+ begin update public.patent_assets set rights_holder=repeat('a',501) where application_number_normalized='KR-1'; raise exception 'oversized rights holder accepted'; exception when check_violation then null; end;
  select count(*) into n from public.audit_logs where organization_id='61000000-0000-4000-8000-000000000001' and action='patent.asset.created'; if n<>100 then raise exception 'asset audit missing: %',n; end if;
  begin insert into public.patent_assets(organization_id,title,jurisdiction,application_number) values ('61000000-0000-4000-8000-000000000001','duplicate','KR','kr- 1'); raise exception 'duplicate not blocked'; exception when unique_violation then null; end;
  begin insert into public.patent_assets(organization_id,family_id,title,jurisdiction) values ('61000000-0000-4000-8000-000000000001',current_setting('test.family_b')::uuid,'cross family','KR'); raise exception 'cross-tenant family accepted'; exception when foreign_key_violation then null; end;
@@ -30,11 +32,11 @@ select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000003'
 do $$ declare n int; begin
  select count(*) into n from public.patent_assets; if n<>100 then raise exception 'viewer read failed'; end if;
  begin insert into public.patent_assets(organization_id,title,jurisdiction) values('61000000-0000-4000-8000-000000000001','viewer write','KR'); raise exception 'viewer insert accepted'; exception when insufficient_privilege then null; end;
- update public.patent_assets set title='viewer update'; get diagnostics n=row_count; if n<>0 then raise exception 'viewer update accepted'; end if;
+ update public.patent_assets set rights_holder='viewer update'; get diagnostics n=row_count; if n<>0 then raise exception 'viewer update accepted'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000004',true);
-update public.patent_assets set title='IP updated' where organization_id='61000000-0000-4000-8000-000000000001' and application_number_normalized='KR-1';
-do $$ declare n int; begin select count(*) into n from public.patent_assets where title='IP updated'; if n<>1 then raise exception 'IP update failed'; end if; end $$;
+update public.patent_assets set title='IP updated', rights_holder='IP holder' where organization_id='61000000-0000-4000-8000-000000000001' and application_number_normalized='KR-1';
+do $$ declare n int; begin select count(*) into n from public.patent_assets where title='IP updated' and rights_holder='IP holder'; if n<>1 then raise exception 'IP update failed'; end if; end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
 do $$ declare n int; begin select count(*) into n from public.patent_assets; if n<>0 then raise exception 'cross-tenant read leaked'; end if; end $$;
 set local role anon;
