@@ -16,6 +16,12 @@ insert into public.patent_assets(organization_id,title,jurisdiction) values('a10
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000001',true);
 insert into public.patent_assets(organization_id,title,jurisdiction) values('a1000000-0000-4000-8000-000000000001','Patent A','KR') returning set_config('test.event_asset_a',id::text,true);
 insert into public.royalty_dcf_assessments(organization_id,asset_id,valuation_date,scenario,currency,years,base_sales,growth_rate,royalty_rate,contribution_rate,annual_cost,tax_rate,discount_rate) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2025-01-01','base','KRW',2,1000,0,10,100,20,25,20) returning set_config('test.dcf',id::text,true);
+do $$ declare n int; x numeric; begin
+ select count(*) into n from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid); if n<>2 then raise exception 'wrong cashflow count'; end if;
+ select discounted_cashflow::numeric into x from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid) where year_number=1; if x<>50 then raise exception 'year 1 cashflow incorrect %',x; end if;
+ select discounted_cashflow::numeric into x from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid) where year_number=2; if x<>41.67 then raise exception 'year 2 cashflow incorrect %',x; end if;
+ select count(*) into n from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000002',current_setting('test.dcf')::uuid); if n<>0 then raise exception 'cashflow wrong organization'; end if;
+end $$;
 do $$ declare x numeric; begin
  select result into x from public.royalty_dcf_assessments where id=current_setting('test.dcf')::uuid; if x<>91.67 then raise exception 'incorrect DCF %',x; end if;
  begin update public.royalty_dcf_assessments set result=999 where id=current_setting('test.dcf')::uuid; raise exception 'result modified'; exception when insufficient_privilege then null; end;
@@ -29,9 +35,9 @@ do $$ declare x numeric; begin
  select result into x from public.royalty_dcf_assessments where id=current_setting('test.dcf2')::uuid; if x<>100 then raise exception 'negative growth edge case %',x; end if;
 end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000003',true);
-do $$ declare n int; begin select count(*) into n from public.royalty_dcf_assessments; if n<>0 then raise exception 'viewer can read'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.royalty_dcf_assessments; if n<>0 then raise exception 'viewer can read'; end if; select count(*) into n from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid); if n<>0 then raise exception 'viewer sees cashflows'; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
-do $$ declare n int; begin select count(*) into n from public.royalty_dcf_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.royalty_dcf_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; select count(*) into n from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid); if n<>0 then raise exception 'cross tenant cashflows leak'; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000004',true);
 update public.royalty_dcf_assessments set assumptions='자료 검토',base_sales=0,annual_cost=20,discount_rate=0 where id=current_setting('test.dcf')::uuid;
 do $$ declare x numeric; begin select result into x from public.royalty_dcf_assessments where id=current_setting('test.dcf')::uuid; if x<>-40 then raise exception 'negative cash flow taxed or calculated incorrectly %',x; end if; end $$;
@@ -45,5 +51,6 @@ do $$ declare n int; begin
  begin delete from public.royalty_dcf_assessments where id=current_setting('test.dcf')::uuid; raise exception 'final deleted'; exception when insufficient_privilege then null; end;
 end $$;
 set local role anon;
+do $$ begin begin perform * from public.royalty_dcf_cashflows('a1000000-0000-4000-8000-000000000001',current_setting('test.dcf')::uuid); raise exception 'anonymous cashflow accepted'; exception when insufficient_privilege then null; end; end $$;
 do $$ begin begin perform * from public.royalty_dcf_assessments; raise exception 'anonymous read accepted'; exception when insufficient_privilege then null; end; end $$;
 rollback;

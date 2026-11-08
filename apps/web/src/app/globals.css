@@ -30,3 +30,11 @@
 .scenario-card dd { margin: 0; text-align: right; }
 .scenario-card p { white-space: pre-wrap; }
 @media (max-width: 760px) { .scenario-grid { grid-template-columns: 1fr; } }
+
+.cashflow-total { font-size: 1.5rem; font-weight: 700; color: #275fe9; overflow-wrap: anywhere; }
+.cashflow-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cashflow-table-wrap { max-width: 100%; overflow-x: auto; margin: 1rem 0; }
+.cashflow-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.cashflow-table caption { text-align: left; padding: .5rem 0; }
+.cashflow-table th, .cashflow-table td { padding: .7rem; border-bottom: 1px solid #dfe8f5; white-space: nowrap; text-align: right; }
+.cashflow-table th:first-child { text-align: left; }
