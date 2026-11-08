@@ -12,9 +12,13 @@ const labels: Record<string, string> = {
   'organization.invitation.accepted': '구성원 초대 수락',
   'patent.family.created': '특허 패밀리 등록',
   'patent.family.updated': '특허 패밀리 수정',
+  'patent.family.deleted': '특허 패밀리 삭제',
   'patent.asset.created': '특허 자산 등록',
   'patent.asset.updated': '특허 자산 수정',
+  'patent.asset.deleted': '특허 자산 삭제',
   'patent.portfolio.created': '포트폴리오 생성',
+  'patent.portfolio.updated': '포트폴리오 수정',
+  'patent.portfolio.deleted': '포트폴리오 삭제',
   'patent.portfolio.asset.added': '포트폴리오 특허 연결',
   'patent.portfolio.asset.removed': '포트폴리오 특허 연결 해제',
 };

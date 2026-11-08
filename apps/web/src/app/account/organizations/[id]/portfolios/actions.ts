@@ -22,3 +22,13 @@ export async function changeAssignment(form:FormData) {
   if(result.error||!result.data) redirect(`${url}?error=${result.error?.code==='23505'?'duplicate':'save'}`);
   redirect(`${url}?${operation==='add'?'added':'removed'}=1`);
 }
+export async function managePortfolio(form:FormData) {
+  const org=read(form,'organization'),portfolio=read(form,'portfolio'),operation=read(form,'operation'),name=read(form,'name'),description=read(form,'description');
+  if(!uuid.test(org)||!uuid.test(portfolio)||!['update','delete'].includes(operation)) redirect('/account');
+  const back=`${base(org)}/${portfolio}`;
+  if(operation==='update' && (!name || Array.from(name).length>200 || Array.from(description).length>500)) redirect(`${back}?error=invalid`);
+  const supabase=await client();
+  const result=operation==='update' ? await supabase.from('patent_portfolios').update({name,description:description||null}).eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle() : await supabase.from('patent_portfolios').delete().eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle();
+  if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23503'?'linked':'save'}`);
+  redirect(operation==='update' ? `${back}?updated=1` : `${base(org)}?deleted=1`);
+}

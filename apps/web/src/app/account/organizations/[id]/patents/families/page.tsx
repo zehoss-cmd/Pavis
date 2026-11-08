@@ -1,0 +1,10 @@
+import Link from 'next/link';
+import { ConfirmSubmit } from '@/components/confirm-submit';
+import { patentAccess } from '@/lib/patents/access';
+import { manageFamily } from '../actions';
+export default async function Families({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{error?:string;updated?:string;deleted?:string}>}) {
+  const {id}=await params,flags=await searchParams;
+  const {supabase,organization,canWrite}=await patentAccess(id);
+  const {data:families,error}=await supabase.from('patent_families').select('id,name').eq('organization_id',id).order('name').order('id').limit(200);
+  return <main className="auth-page"><Link href={`/account/organizations/${id}/patents`} className="logo">◈ <span>PAVIS</span></Link><div className="auth-card patent-card"><p className="eyebrow">PATENT FAMILIES</p><h1>특허 패밀리 관리</h1><p>{organization.name} · 이름순 최대 200개 표시</p>{(flags.updated||flags.deleted) && <p className="form-message" role="status">{flags.updated?'패밀리 이름을 수정했습니다.':'패밀리를 삭제했습니다.'}</p>}{flags.error && <p className="form-message" role="alert">{flags.error==='linked'?'이 패밀리에 연결된 특허가 있습니다. 특허의 패밀리 연결을 먼저 해제해 주세요.':'패밀리를 처리하지 못했습니다. 입력 내용과 권한을 확인해 주세요.'}</p>}{error ? <p className="form-message" role="alert">패밀리를 불러오지 못했습니다.</p> : families?.length ? <ul className="asset-list">{families.map(f=><li key={f.id}>{canWrite ? <><form action={manageFamily}><input type="hidden" name="organization" value={id}/><input type="hidden" name="family" value={f.id}/><input type="hidden" name="operation" value="update"/><label>패밀리 이름<input name="name" maxLength={200} defaultValue={f.name} required/></label><button type="submit">이름 수정</button></form><form action={manageFamily}><input type="hidden" name="organization" value={id}/><input type="hidden" name="family" value={f.id}/><input type="hidden" name="operation" value="delete"/><ConfirmSubmit message="이 패밀리를 삭제할까요? 연결된 특허가 있으면 삭제되지 않습니다.">패밀리 삭제</ConfirmSubmit></form></> : <strong>{f.name}</strong>}</li>)}</ul> : <p>만든 패밀리가 없습니다.</p>}<Link href={`/account/organizations/${id}/patents`}>← 특허 자산으로</Link></div></main>;
+}

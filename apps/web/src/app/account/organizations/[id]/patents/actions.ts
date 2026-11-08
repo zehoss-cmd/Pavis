@@ -35,3 +35,21 @@ export async function saveAsset(form:FormData) {
   if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23505' ? 'duplicate' : 'save'}`);
   redirect(`${root(org)}/${result.data.id}?saved=1`);
 }
+export async function deleteAsset(form:FormData) {
+  const org=read(form,'organization'), asset=read(form,'asset');
+  if(!uuid.test(org)||!uuid.test(asset)) redirect('/account');
+  const back=`${root(org)}/${asset}`, supabase=await clientForUser();
+  const {data,error}=await supabase.from('patent_assets').delete().eq('organization_id',org).eq('id',asset).select('id').maybeSingle();
+  if(error || !data) redirect(`${back}?error=${error?.code==='23503'?'linked':'delete'}`);
+  redirect(`${root(org)}?deleted=1`);
+}
+export async function manageFamily(form:FormData) {
+  const org=read(form,'organization'),family=read(form,'family'),operation=read(form,'operation'),name=read(form,'name');
+  if(!uuid.test(org)||!uuid.test(family)||!['update','delete'].includes(operation)) redirect('/account');
+  const back=`${root(org)}/families`;
+  if(operation==='update' && (!name || Array.from(name).length>200)) redirect(`${back}?error=invalid`);
+  const supabase=await clientForUser();
+  const result=operation==='update' ? await supabase.from('patent_families').update({name}).eq('organization_id',org).eq('id',family).select('id').maybeSingle() : await supabase.from('patent_families').delete().eq('organization_id',org).eq('id',family).select('id').maybeSingle();
+  if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23503'?'linked':'save'}`);
+  redirect(`${back}?${operation==='update'?'updated':'deleted'}=1`);
+}

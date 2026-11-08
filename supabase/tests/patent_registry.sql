@@ -26,17 +26,24 @@ do $$ declare n int; begin
  begin insert into public.patent_assets(organization_id,family_id,title,jurisdiction) values ('61000000-0000-4000-8000-000000000001',current_setting('test.family_b')::uuid,'cross family','KR'); raise exception 'cross-tenant family accepted'; exception when foreign_key_violation then null; end;
  begin insert into public.patent_assets(organization_id,title,jurisdiction) values ('61000000-0000-4000-8000-000000000002','wrong org','KR'); raise exception 'cross-tenant write accepted'; exception when insufficient_privilege then null; end;
  begin update public.patent_assets set organization_id='61000000-0000-4000-8000-000000000002'; raise exception 'tenant reassignment accepted'; exception when insufficient_privilege then null; end;
- begin delete from public.patent_assets; raise exception 'delete allowed'; exception when insufficient_privilege then null; end;
+ begin delete from public.patent_families where id=current_setting('test.family_a')::uuid; raise exception 'linked family deleted'; exception when foreign_key_violation then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000003',true);
 do $$ declare n int; begin
  select count(*) into n from public.patent_assets; if n<>100 then raise exception 'viewer read failed'; end if;
  begin insert into public.patent_assets(organization_id,title,jurisdiction) values('61000000-0000-4000-8000-000000000001','viewer write','KR'); raise exception 'viewer insert accepted'; exception when insufficient_privilege then null; end;
  update public.patent_assets set rights_holder='viewer update'; get diagnostics n=row_count; if n<>0 then raise exception 'viewer update accepted'; end if;
+ delete from public.patent_assets; get diagnostics n=row_count; if n<>0 then raise exception 'viewer deleted assets'; end if;
+ delete from public.patent_families; get diagnostics n=row_count; if n<>0 then raise exception 'viewer deleted families'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000004',true);
 update public.patent_assets set title='IP updated', rights_holder='IP holder' where organization_id='61000000-0000-4000-8000-000000000001' and application_number_normalized='KR-1';
 do $$ declare n int; begin select count(*) into n from public.patent_assets where title='IP updated' and rights_holder='IP holder'; if n<>1 then raise exception 'IP update failed'; end if; end $$;
+delete from public.patent_assets where title='IP updated';
+update public.patent_assets set family_id=null where family_id=current_setting('test.family_a')::uuid;
+delete from public.patent_families where id=current_setting('test.family_a')::uuid;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
+do $$ declare n int; begin select count(*) into n from public.audit_logs where organization_id='61000000-0000-4000-8000-000000000001' and action in ('patent.asset.deleted','patent.family.deleted'); if n<>2 then raise exception 'delete audit missing'; end if; end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
 do $$ declare n int; begin select count(*) into n from public.patent_assets; if n<>0 then raise exception 'cross-tenant read leaked'; end if; end $$;
 set local role anon;
