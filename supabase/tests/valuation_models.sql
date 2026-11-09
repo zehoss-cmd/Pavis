@@ -22,6 +22,7 @@ do $$ begin
  begin delete from public.valuation_models where id=current_setting('test.model')::uuid; raise exception 'model deleted'; exception when insufficient_privilege then null; end;
 end $$;
 insert into public.valuation_assessments(organization_id,asset_id,model_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,current_setting('test.model')::uuid,'2025-01-01',1,2,3,4) returning set_config('test.assessment',id::text,true);
+do $$ declare s jsonb; begin s:=public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.assessment')::uuid); if s->>'model_name'<>'Test' or s->>'model_revision'<>'v1' or s->'criteria'->0->>'weight'<>'40' or s->>'weighted_score'<>'2.00' then raise exception 'custom model export incorrect %',s; end if; end $$;
 do $$ declare n numeric; begin select weighted_score into n from public.valuation_assessments where id=current_setting('test.assessment')::uuid; if n<>2 then raise exception 'wrong score %',n; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
 do $$ declare n int; begin

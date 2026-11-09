@@ -1,14 +1,6 @@
+import { textCell, numberCell } from './csv.ts';
 type Flow={year_number:number;revenue:string;royalty_income:string;annual_cost:string;taxable_income:string;tax:string;net_cashflow:string;discounted_cashflow:string};
 export type ExportSnapshot={organization_name:string;asset_id:string;asset_title:string;jurisdiction:string;assessment_id:string;valuation_date:string;scenario:string;currency:string;years:number;base_sales:string;growth_rate:string;royalty_rate:string;contribution_rate:string;annual_cost:string;tax_rate:string;discount_rate:string;assumptions:string|null;model_version:string;result:string;status:string;created_at:string;updated_at:string;finalized_at:string|null;copied_from_id:string|null;copied_from_snapshot:unknown;cashflows:Flow[]};
-const decimal=/^-?\d+(?:\.\d+)?$/;
-function textCell(value:unknown):string {
- let text=value===null||value===undefined?'':String(value);
- if(/^[\s\uFEFF]*[=+\-@]/u.test(text)||/^[\t\r\n]/u.test(text)) text="'"+text;
- return '"'+text.replace(/"/g,'""')+'"';
-}
-function numberCell(value:unknown):string {
- const text=String(value);if(!decimal.test(text)) throw new Error('invalid numeric export value');return text;
-}
 export function dcfCsv(snapshot:ExportSnapshot):string {
  if(snapshot.model_version!=='royalty-dcf-v1'||!Number.isInteger(snapshot.years)||snapshot.years<1||snapshot.years>20||!Array.isArray(snapshot.cashflows)||snapshot.cashflows.length!==snapshot.years||snapshot.cashflows.some((flow,index)=>flow.year_number!==index+1)) throw new Error('incomplete assessment export');
  const rows:string[][]=[];

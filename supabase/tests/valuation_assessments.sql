@@ -16,6 +16,11 @@ insert into public.patent_assets(organization_id,title,jurisdiction) values('a10
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000001',true);
 insert into public.patent_assets(organization_id,title,jurisdiction) values('a1000000-0000-4000-8000-000000000001','Patent A','KR') returning set_config('test.event_asset_a',id::text,true);
 insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2025-01-01',1,2,3,4) returning set_config('test.valuation',id::text,true);
+do $$ declare s jsonb; begin
+ s:=public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid);
+ if s->>'weighted_score'<>'2.50' or s->>'model_name'<>'기본 모델' or s->'criteria'->0->>'score'<>'1' or s->'criteria'->0->>'weight'<>'25' then raise exception 'incorrect qualitative export %',s; end if;
+ if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000002',current_setting('test.valuation')::uuid) is not null then raise exception 'wrong organization export'; end if;
+end $$;
 do $$ declare n numeric; begin
  select score into n from public.valuation_assessments where id=current_setting('test.valuation')::uuid; if n<>2.50 then raise exception 'incorrect score'; end if;
  begin insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_b')::uuid,'2025-01-01',1,2,3,4); raise exception 'cross organization asset accepted'; exception when foreign_key_violation then null; end;
@@ -24,10 +29,11 @@ end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000003',true);
 do $$ declare n int; begin
  select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'viewer can read'; end if;
+ if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'viewer sees export'; end if;
  begin insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2025-01-01',1,2,3,4); raise exception 'viewer insert accepted'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
-do $$ declare n int; begin select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'cross tenant export leak'; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000004',true);
 update public.valuation_assessments set legal_note='legal',technical_note='technical',market_note='market',commercial_note='commercial' where id=current_setting('test.valuation')::uuid;
 delete from public.valuation_assessments where id=current_setting('test.valuation')::uuid;
@@ -40,5 +46,6 @@ do $$ declare n int; begin
  begin delete from public.valuation_assessments where id=current_setting('test.valuation')::uuid; raise exception 'final deleted'; exception when insufficient_privilege then null; end;
 end $$;
 set local role anon;
+do $$ begin begin perform public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid); raise exception 'anonymous export accepted'; exception when insufficient_privilege then null; end; end $$;
 do $$ begin begin perform * from public.valuation_assessments; raise exception 'anonymous read accepted'; exception when insufficient_privilege then null; end; end $$;
 rollback;
