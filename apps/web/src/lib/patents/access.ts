@@ -12,5 +12,5 @@ export async function patentAccess(org:string) {
     supabase.from('organization_members').select('role,status').eq('organization_id',org).eq('user_id',user.id).maybeSingle(),
   ]);
   if(!organization || !canPerformOrganizationAction(membership?.role,membership?.status,'asset.read')) notFound();
-  return {supabase,organization,canWrite:canPerformOrganizationAction(membership?.role,membership?.status,'asset.write')};
+  return {supabase,organization,canWrite:canPerformOrganizationAction(membership?.role,membership?.status,'asset.write'),canReadValuation:canPerformOrganizationAction(membership?.role,membership?.status,'valuation.read')};
 }
