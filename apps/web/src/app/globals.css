@@ -38,3 +38,6 @@
 .cashflow-table caption { text-align: left; padding: .5rem 0; }
 .cashflow-table th, .cashflow-table td { padding: .7rem; border-bottom: 1px solid #dfe8f5; white-space: nowrap; text-align: right; }
 .cashflow-table th:first-child { text-align: left; }
+
+.assumption-comparison th, .assumption-comparison td { white-space: pre-wrap; overflow-wrap: anywhere; vertical-align: top; }
+.assumption-comparison td { min-width: 9rem; }
