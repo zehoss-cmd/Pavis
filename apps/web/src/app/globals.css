@@ -96,3 +96,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
   .organization-row > a { white-space: normal; }
 }
 .auth-card > a:not(.logo):not(.patent-action) { margin-top: 12px; }
+.workspace-org-selector { display: grid; gap: 6px; margin: 0 5px 12px; color: #72839a; font-size: 11px; font-weight: 700; }
+.workspace-org-selector select { width: 100%; min-width: 0; padding: 9px; border: 1px solid #d9e4f4; border-radius: 9px; background: #fff; color: #24344d; font-size: 12px; }
+.workspace-org-name, .workspace-org-message { margin: 0 8px 12px; color: #72839a; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.workspace-org-name strong { display: block; color: #24344d; font-size: 12px; }
+@media(max-width:760px) {
+ .workspace-org-selector { flex: none; width: 130px; margin: 0 5px 0 0; gap: 2px; }
+ .workspace-org-selector select { padding: 6px; }
+ .workspace-org-name, .workspace-org-message { flex: none; max-width: 145px; margin: 0 5px; align-self: center; }
+}

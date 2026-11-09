@@ -1,5 +1,6 @@
 'use server';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const roles = ['admin','ip_manager','analyst','licensing_manager','viewer'];
@@ -48,5 +49,6 @@ export async function deleteOrganization(form: FormData) {
   if(authError || !user) redirect('/login');
   const {error}=await supabase.rpc('delete_empty_organization',{p_org:id});
   if(error) redirect(`/account/organizations/${id}?delete_error=${error.code==='P0001'?'not_empty':'failed'}`);
+  revalidatePath('/account','layout');
   redirect('/account?deleted=1');
 }

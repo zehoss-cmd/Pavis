@@ -1,5 +1,6 @@
 'use server';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
 export async function createOrganization(form: FormData) {
@@ -10,6 +11,7 @@ export async function createOrganization(form: FormData) {
   if (authError || !user) redirect('/login');
   const { error } = await supabase.rpc('create_organization', { org_name: name });
   if (error) redirect('/account?error=1');
+  revalidatePath('/account','layout');
   redirect('/account?created=1');
 }
 
@@ -21,6 +23,7 @@ export async function acceptInvitation(form: FormData) {
   if (authError || !user) redirect('/login');
   const {error} = await supabase.rpc('accept_organization_invitation',{p_invite:invitation});
   if (error) redirect('/account?invite_error=1');
+  revalidatePath('/account','layout');
   redirect('/account?joined=1');
 }
 
@@ -32,5 +35,6 @@ export async function restoreOrganization(form: FormData) {
   if (authError || !user) redirect('/login');
   const { error } = await supabase.rpc('restore_deleted_organization', { p_id: id });
   if (error) redirect('/account?restore_error=1');
+  revalidatePath('/account','layout');
   redirect('/account?restored=1');
 }
