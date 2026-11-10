@@ -112,3 +112,4 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .auth-card .valuation-history-filter button, .auth-card .valuation-history-filter .filter-reset { min-height: 45px; border-radius: 10px; padding: 12px 18px; }
 .auth-card .valuation-history-filter .filter-reset { display: inline-flex; align-items: center; justify-content: center; background: white; border: 1px solid #dce3ed; font-size: 14px; }
 .auth-card .asset-list a.history-compare-link { display: inline-flex; width: fit-content; margin: 4px 0 8px; padding: 9px 14px; border: 1px solid #dce3ed; border-radius: 10px; background: #f7f9fc; }
+.auth-card a.auth-navigation { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 16px; border: 1px solid #dce3ed; border-radius: 12px; background: #f7f9fc; }
