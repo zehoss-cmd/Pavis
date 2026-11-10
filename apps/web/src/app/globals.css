@@ -115,21 +115,21 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .auth-card a.auth-navigation { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 16px; border: 1px solid #dce3ed; border-radius: 12px; background: #f7f9fc; }
 .login-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 /* Login layout */
-.login-screen { min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: 26px 24px 48px; background: #fff; color: #151515; }
-.login-brand { display: inline-flex; align-items: center; gap: 7px; color: #111; font-size: 25px; font-weight: 800; letter-spacing: -1px; }
+.login-screen { --classic-blue: #3b5384; min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: 26px 24px 48px; background: #fff; color: #151515; }
+.login-brand { display: inline-flex; align-items: center; gap: 7px; color: var(--classic-blue); font-size: 25px; font-weight: 800; letter-spacing: -1px; }
 .login-brand span { font-size: 29px; line-height: 1; }
 .login-panel { width: min(100%, 376px); margin: auto 0; padding: 56px 0 24px; }
 .login-panel h1 { margin: 0 0 42px; text-align: center; font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
 .login-panel form { display: grid; gap: 18px; }
 .login-panel form > label:not(.remember-email) { display: grid; gap: 8px; font-size: 13px; font-weight: 500; }
 .login-panel input:not([type=checkbox]) { width: 100%; height: 42px; padding: 0 12px; color: #151515; background: #fff; border: 1px solid #d9d9d9; border-radius: 7px; font: inherit; font-size: 15px; }
-.login-panel input:not([type=checkbox]):focus { border-color: #555; outline: 2px solid #d4d4d4; outline-offset: 1px; }
+.login-panel input:not([type=checkbox]):focus { border-color: var(--classic-blue); outline: 2px solid #b6c7d6; outline-offset: 1px; }
 .login-panel .remember-email { display: flex; width: fit-content; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
-.login-panel .remember-email input { width: 16px; height: 16px; margin: 0; accent-color: #171717; }
-.login-panel button { width: 100%; min-height: 42px; background: #171717; color: #fff; border: 0; border-radius: 7px; font-size: 14px; font-weight: 700; cursor: pointer; }
-.login-panel button:hover { background: #333; }
+.login-panel .remember-email input { width: 16px; height: 16px; margin: 0; accent-color: var(--classic-blue); }
+.login-panel button { width: 100%; min-height: 42px; background: var(--classic-blue); color: #fff; border: 0; border-radius: 7px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.login-panel button:hover { background: #2e426c; }
 .login-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
-.login-links a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 14px; border: 1px solid #e4e4e4; border-radius: 8px; color: #333; font-size: 13px; }
+.login-links a { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 14px; border: 1px solid #e4e4e4; border-radius: 8px; color: var(--classic-blue); font-size: 13px; }
 .login-links a:hover { background: #f7f7f7; }
 .login-message { margin: 0 0 20px; padding: 12px; border-radius: 8px; background: #f3f5f8; color: #424b59; font-size: 13px; line-height: 1.5; }
 @media (max-width: 480px) { .login-screen { padding: 24px 24px 40px; } .login-panel { padding-top: 36px; } }
