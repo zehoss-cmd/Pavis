@@ -20,7 +20,7 @@ export async function resetPassword(form: FormData) {
   const token = String(form.get('token') || '').trim();
   const password = String(form.get('password') || '');
   const confirm = String(form.get('confirm') || '');
-  if (!email || email.length > 254 || !/^\d{6}$/.test(token) || password.length < 8 || password.length > 72 || password !== confirm) redirect('/forgot-password?error=input');
+  if (!email || email.length > 254 || !/^\d{6,10}$/.test(token) || password.length < 8 || password.length > 72 || password !== confirm) redirect('/forgot-password?error=input');
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ email, token, type: 'recovery' });
   if (error) redirect('/forgot-password?sent=1&error=verify');
