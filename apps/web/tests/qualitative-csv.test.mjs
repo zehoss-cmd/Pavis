@@ -11,3 +11,9 @@ test('exports model, weights and evidence while protecting spreadsheet text',()=
 test('rejects incomplete or inconsistent snapshots',()=>{
  assert.throws(()=>qualitativeCsv({...snapshot,criteria:criteria.slice(1)}));assert.throws(()=>qualitativeCsv({...snapshot,criteria:criteria.map((item,i)=>i?item:{...item,weight:99})}));assert.throws(()=>qualitativeCsv({...snapshot,weighted_score:'=1+1'}));assert.throws(()=>qualitativeCsv({...snapshot,model_version:'unknown'}));
 });
+
+test('includes the source snapshot when the assessment was copied',()=>{
+ const rows=parse(qualitativeCsv({...snapshot,copied_from_id:'source-id',copied_from_snapshot:{status:'final',criteria:[{note:'=근거'}]}}),{bom:true});
+ assert.equal(rows.find(row=>row[0]==='원본'&&row[1]==='복사한 원본 평가 ID')?.[2],'source-id');
+ assert.match(rows.find(row=>row[0]==='원본'&&row[1]==='복사 당시 원본 정보 (JSON)')?.[2],/"status":"final"/);
+});

@@ -26,17 +26,34 @@ do $$ declare n numeric; begin
  begin insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_b')::uuid,'2025-01-01',1,2,3,4); raise exception 'cross organization asset accepted'; exception when foreign_key_violation then null; end;
  begin update public.valuation_assessments set status='final' where id=current_setting('test.valuation')::uuid; raise exception 'finalization without evidence accepted'; exception when check_violation then null; end;
 end $$;
+select set_config('test.copy',public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid)::text,true);
+do $$ declare n int; begin
+ select count(*) into n from public.valuation_assessments where id=current_setting('test.copy')::uuid and status='draft' and copied_from_id=current_setting('test.valuation')::uuid and copied_from_snapshot->>'weighted_score'='2.50' and copied_from_snapshot->'criteria'->0->>'score'='1' and copied_from_snapshot->'criteria'->0->>'weight'='25'; if n<>1 then raise exception 'copy provenance incorrect'; end if;
+ begin insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score,copied_from_id) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2025-01-01',1,2,3,4,current_setting('test.valuation')::uuid); raise exception 'provenance spoofed'; exception when insufficient_privilege then null; end;
+ begin update public.valuation_assessments set copied_from_id=null where id=current_setting('test.copy')::uuid; raise exception 'provenance changed'; exception when insufficient_privilege then null; end;
+ update public.valuation_assessments set legal_score=5,legal_note='새 근거' where id=current_setting('test.copy')::uuid;
+ select count(*) into n from public.valuation_assessments where id=current_setting('test.valuation')::uuid and legal_score=1 and weighted_score=2.50; if n<>1 then raise exception 'copy changed original'; end if;
+end $$;
+delete from public.valuation_assessments where id=current_setting('test.copy')::uuid;
+select set_config('test.copy_trash',id::text,true) from public.registry_recycle_list('a1000000-0000-4000-8000-000000000001') where kind='valuation' and record_id=current_setting('test.copy')::uuid;
+select public.registry_recycle_restore('a1000000-0000-4000-8000-000000000001',current_setting('test.copy_trash')::uuid);
+do $$ declare n int;s jsonb; begin
+ select count(*) into n from public.valuation_assessments where id=current_setting('test.copy')::uuid and copied_from_id=current_setting('test.valuation')::uuid and copied_from_snapshot->'criteria'->0->>'score'='1' and legal_score=5; if n<>1 then raise exception 'restored copy lost provenance'; end if;
+ s:=public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.copy')::uuid); if s->>'copied_from_id'<>current_setting('test.valuation') or s->'copied_from_snapshot'->'criteria'->0->>'score'<>'1' then raise exception 'export lost provenance'; end if;
+end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000003',true);
 do $$ declare n int; begin
  select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'viewer can read'; end if;
  if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'viewer sees export'; end if;
+ if public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'viewer copied'; end if;
  begin insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score) values('a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2025-01-01',1,2,3,4); raise exception 'viewer insert accepted'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
-do $$ declare n int; begin select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'cross tenant export leak'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.valuation_assessments; if n<>0 then raise exception 'cross tenant leak'; end if; if public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'cross tenant export leak'; end if; if public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid) is not null then raise exception 'cross tenant copy'; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000004',true);
 update public.valuation_assessments set legal_note='legal',technical_note='technical',market_note='market',commercial_note='commercial' where id=current_setting('test.valuation')::uuid;
 delete from public.valuation_assessments where id=current_setting('test.valuation')::uuid;
+do $$ declare n int; begin select count(*) into n from public.valuation_assessments where id=current_setting('test.copy')::uuid and copied_from_id=current_setting('test.valuation')::uuid and copied_from_snapshot->>'weighted_score'='2.50'; if n<>1 then raise exception 'source deletion lost provenance'; end if; end $$;
 select set_config('test.valuation_trash',id::text,true) from public.registry_recycle_list('a1000000-0000-4000-8000-000000000001') where kind='valuation' and record_id=current_setting('test.valuation')::uuid and name='Patent A · 2025-01-01';
 select public.registry_recycle_restore('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation_trash')::uuid);
 update public.valuation_assessments set status='final' where id=current_setting('test.valuation')::uuid;
@@ -45,7 +62,10 @@ do $$ declare n int; begin
  begin update public.valuation_assessments set legal_score=0 where id=current_setting('test.valuation')::uuid; raise exception 'final updated'; exception when insufficient_privilege then null; end;
  begin delete from public.valuation_assessments where id=current_setting('test.valuation')::uuid; raise exception 'final deleted'; exception when insufficient_privilege then null; end;
 end $$;
+select set_config('test.final_copy',public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid)::text,true);
+do $$ declare n int; begin select count(*) into n from public.valuation_assessments where id=current_setting('test.final_copy')::uuid and status='draft' and finalized_at is null and copied_from_snapshot->>'status'='final' and copied_from_snapshot->'criteria'->0->>'note'='legal' and created_by=auth.uid(); if n<>1 then raise exception 'copy of final not a fresh draft'; end if; end $$;
 set local role anon;
+do $$ begin begin perform public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid); raise exception 'anonymous copy accepted'; exception when insufficient_privilege then null; end; end $$;
 do $$ begin begin perform public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid); raise exception 'anonymous export accepted'; exception when insufficient_privilege then null; end; end $$;
 do $$ begin begin perform * from public.valuation_assessments; raise exception 'anonymous read accepted'; exception when insufficient_privilege then null; end; end $$;
 rollback;
