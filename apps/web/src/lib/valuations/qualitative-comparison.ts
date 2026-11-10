@@ -19,3 +19,24 @@ export function compareQualitativeCriteria(origin: unknown, current: Current) {
     return { key, label, source, current: now, changed: source ? source.score !== now.score || source.weight !== now.weight || (source.note || '') !== (now.note || '') : null };
   });
 }
+
+function scoreInHundredths(value: unknown): number | null {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const text = String(value);
+  if (!/^(?:[0-4](?:\.\d{1,2})?|5(?:\.0{1,2})?)$/.test(text)) return null;
+  const [whole, fraction = ''] = text.split('.');
+  return Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
+}
+
+export function compareQualitativeSummary(origin: Record<string, unknown>, current: { assessment_date: string; weighted_score: number | string }) {
+  const sourceScore = scoreInHundredths(origin.weighted_score);
+  const currentScore = scoreInHundredths(current.weighted_score);
+  const validDate = (date: unknown): date is string => typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(`${date}T00:00:00Z`)) && new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
+  return {
+    sourceDate: validDate(origin.assessment_date) ? origin.assessment_date : null,
+    currentDate: validDate(current.assessment_date) ? current.assessment_date : null,
+    sourceScore: sourceScore === null ? null : (sourceScore / 100).toFixed(2),
+    currentScore: currentScore === null ? null : (currentScore / 100).toFixed(2),
+    scoreDifference: sourceScore === null || currentScore === null ? null : currentScore - sourceScore,
+  };
+}
