@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createRecoveryGrant, recoveryCookieName, recoveryLifetimeSeconds } from '@/domain/auth/recovery-grant';
 import { recoverySession } from './recovery-session';
+import { isValidPassword } from '@/domain/auth/password-policy';
 import { recoveryRequestCookieName, recoveryCodeSeconds, parseRecoveryRequest } from '@/domain/auth/recovery-request';
 
 export async function requestRecovery(form: FormData) {
@@ -44,7 +45,7 @@ export async function resetPassword(form: FormData) {
   if (!supabase) redirect('/forgot-password?error=expired');
   const password = String(form.get('password') || '');
   const confirm = String(form.get('confirm') || '');
-  if (password.length < 8 || password.length > 72 || password !== confirm) redirect('/forgot-password/new-password?error=input');
+  if (!isValidPassword(password) || password !== confirm) redirect('/forgot-password/new-password?error=input');
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     console.error('PAVIS password reset failed', { status: error.status, code: error.code });
