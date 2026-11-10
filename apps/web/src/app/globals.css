@@ -135,3 +135,4 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 @media (max-width: 480px) { .login-screen { padding: 24px 24px 40px; } .login-panel { padding-top: 36px; } }
 
 button, input, select, textarea { font-family: inherit; }
+@media (max-width: 480px) { .login-links { gap: 6px; } .login-links a { padding: 8px 7px; font-size: 12px; } }

@@ -34,9 +34,9 @@ export function LoginForm() {
   }
 
   return <form action={login} onSubmit={savePreference}>
-    <label>이메일<input ref={email} name="email" type="email" autoComplete="email" required /></label>
-    <label>비밀번호<input name="password" type="password" autoComplete="current-password" required /></label>
-    <label className="remember-email"><input ref={remember} type="checkbox" onChange={event => { if (!event.currentTarget.checked) { try { localStorage.removeItem(savedEmailKey); } catch { /* Storage may be disabled. */ } } }} />아이디 저장</label>
-    <button type="submit">로그인</button>
+    <label>Email address<input ref={email} name="email" type="email" autoComplete="email" required /></label>
+    <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
+    <label className="remember-email"><input ref={remember} type="checkbox" onChange={event => { if (!event.currentTarget.checked) { try { localStorage.removeItem(savedEmailKey); } catch { /* Storage may be disabled. */ } } }} />Remember me</label>
+    <button type="submit">Sign in</button>
   </form>;
 }
