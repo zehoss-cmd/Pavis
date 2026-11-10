@@ -1,6 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { parsePortfolioPage } from '@/lib/portfolios/pagination';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const read=(form:FormData,key:string)=>String(form.get(key)||'').trim();
 const base=(org:string)=>`/account/organizations/${org}/portfolios`;
@@ -17,10 +18,11 @@ export async function createPortfolio(form:FormData) {
 export async function changeAssignment(form:FormData) {
   const org=read(form,'organization'),portfolio=read(form,'portfolio'),asset=read(form,'asset'),operation=read(form,'operation');
   if(!uuid.test(org)||!uuid.test(portfolio)||!uuid.test(asset)||!['add','remove'].includes(operation)) redirect('/account');
-  const url=`${base(org)}/${portfolio}`, supabase=await client();
+  const url=`${base(org)}/${portfolio}`, page=parsePortfolioPage(read(form,'page')), supabase=await client();
+  const pagePart=operation==='remove'&&page>1?`&page=${page}`:'';
   const result=operation==='add' ? await supabase.from('patent_portfolio_assets').insert({organization_id:org,portfolio_id:portfolio,asset_id:asset}).select('id').single() : await supabase.from('patent_portfolio_assets').delete().eq('organization_id',org).eq('portfolio_id',portfolio).eq('asset_id',asset).select('id').maybeSingle();
-  if(result.error||!result.data) redirect(`${url}?error=${result.error?.code==='23505'?'duplicate':'save'}`);
-  redirect(`${url}?${operation==='add'?'added':'removed'}=1`);
+  if(result.error||!result.data) redirect(`${url}?error=${result.error?.code==='23505'?'duplicate':'save'}${pagePart}`);
+  redirect(`${url}?${operation==='add'?'added':'removed'}=1${pagePart}`);
 }
 export async function managePortfolio(form:FormData) {
   const org=read(form,'organization'),portfolio=read(form,'portfolio'),operation=read(form,'operation'),name=read(form,'name'),description=read(form,'description');
