@@ -8,3 +8,18 @@ export function parseComparisonFilter(input: { asset?: unknown; date?: unknown; 
   if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== date) return null;
   return { asset, date, currency };
 }
+
+export type ComparisonRecord = { scenario: string; status: string; model_version: string };
+export function inspectScenarioComparison(records: readonly ComparisonRecord[], truncated: boolean) {
+  const scenarios = ['conservative', 'base', 'optimistic'] as const;
+  const counts = Object.fromEntries(scenarios.map(scenario => [scenario, records.filter(record => record.scenario === scenario).length])) as Record<typeof scenarios[number], number>;
+  const versions = [...new Set(records.map(record => record.model_version).filter(Boolean))];
+  return {
+    counts,
+    missing: scenarios.filter(scenario => counts[scenario] === 0),
+    repeated: scenarios.filter(scenario => counts[scenario] > 1),
+    mixedVersions: versions.length > 1,
+    mixedStatus: records.some(record => record.status === 'draft') && records.some(record => record.status === 'final'),
+    truncated,
+  };
+}
