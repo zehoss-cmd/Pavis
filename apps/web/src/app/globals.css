@@ -107,3 +107,4 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 }
 .auth-card label.remember-email { display: flex; align-items: center; gap: 9px; width: fit-content; cursor: pointer; color: #596980; font-weight: 600; }
 .auth-card label.remember-email input { width: 18px; height: 18px; padding: 0; margin: 0; accent-color: #326df2; cursor: pointer; }
+.auth-card a.auth-navigation { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 16px; border: 1px solid #dce3ed; border-radius: 12px; background: #f7f9fc; }
