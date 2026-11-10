@@ -1,8 +1,11 @@
 import Link from 'next/link';
-import { requestRecovery, confirmRecovery } from './actions';
+import { recoveryRequestTiming } from './recovery-request-server';
+import { RecoveryConfirm } from './recovery-confirm';
+import { requestRecovery } from './actions';
 
 export default async function ForgotPassword({ searchParams }: { searchParams: Promise<{ sent?: string; error?: string }> }) {
   const { sent, error } = await searchParams;
+  const { expiresAt, remainingSeconds } = await recoveryRequestTiming();
   return <main className="login-screen">
     <Link href="/" className="login-brand" aria-label="PAVIS home"><span aria-hidden="true">◈</span> PAVIS</Link>
     <section className="login-panel recovery-panel" aria-labelledby="recovery-heading">
@@ -13,7 +16,7 @@ export default async function ForgotPassword({ searchParams }: { searchParams: P
       <h2>Get a verification code</h2>
       <form action={requestRecovery}><label>Email address<input name="email" type="email" autoComplete="email" maxLength={254} required /></label><button type="submit">Send verification code</button></form>
       <h2>Confirm verification code</h2>
-      <form action={confirmRecovery}><label>Verification code<input name="token" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required /></label><button type="submit">Confirm</button></form>
+      <RecoveryConfirm key={expiresAt} initialSeconds={remainingSeconds} />
       <nav className="login-links" aria-label="Account help"><Link href="/login">Back to sign in</Link></nav>
     </section>
   </main>;

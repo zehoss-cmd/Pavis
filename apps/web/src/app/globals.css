@@ -143,3 +143,5 @@ button, input, select, textarea { font-family: inherit; }
 .recovery-panel h1 { margin-bottom: 14px; }
 .recovery-intro { margin: 0 0 28px; color: #667085; font-size: 13px; line-height: 1.6; text-align: center; }
 .recovery-panel h2 { margin: 30px 0 18px; color: #1e2c42; font-size: 15px; font-weight: 700; }
+.recovery-timer { margin: -4px 0 0; color: #667085; font-size: 13px; line-height: 1.5; }
+.recovery-timer strong { color: #3b5384; font-variant-numeric: tabular-nums; }
