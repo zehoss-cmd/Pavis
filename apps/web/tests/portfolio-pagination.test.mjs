@@ -6,3 +6,11 @@ test('portfolio pages are bounded positive integers',()=>{
  assert.equal(parsePortfolioPage(['2']),1);assert.equal(parsePortfolioPage('2'),2);assert.equal(parsePortfolioPage('9999'),portfolioMaxPage);
  assert.equal(portfolioPageSize,25);assert.equal(portfolioPageQuery(1),'?');assert.equal(portfolioPageQuery(2),'?page=2');
 });
+
+test('asset search and page links preserve bounded literal input', async () => {
+ const {parsePortfolioAssetQuery}=await import('../src/lib/portfolios/pagination.ts');
+ assert.equal(parsePortfolioAssetQuery('  AI 특허  '),'AI 특허');
+ assert.equal(parsePortfolioAssetQuery('x'.repeat(101)).length,100);
+ assert.equal(parsePortfolioAssetQuery(['a','b']),'');
+ assert.equal(portfolioPageQuery(2,'AI & 100%'),'?page=2&asset_query=AI+%26+100%25');
+});

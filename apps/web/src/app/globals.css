@@ -247,3 +247,5 @@ button, input, select, textarea { font-family: inherit; }
   .welcome-panel { flex-wrap: wrap; }
   .workspace-header-actions a, .workspace-header-actions button { padding: 7px 9px; }
 }
+.workspace-content .auth-card form.portfolio-asset-search { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; max-width: 650px; padding: 16px; border: 1px solid #e0e1e5; border-radius: 10px; background: #fafafb; }
+.portfolio-asset-search label { flex: 1 1 200px; }
