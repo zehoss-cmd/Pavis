@@ -14,3 +14,10 @@ test('asset search and page links preserve bounded literal input', async () => {
  assert.equal(parsePortfolioAssetQuery(['a','b']),'');
  assert.equal(portfolioPageQuery(2,'AI & 100%'),'?page=2&asset_query=AI+%26+100%25');
 });
+
+test('portfolio list page links preserve encoded search terms', async () => {
+ const {portfolioListPageQuery}=await import('../src/lib/portfolios/pagination.ts');
+ assert.equal(portfolioListPageQuery(1,''),'?');
+ assert.equal(portfolioListPageQuery(1,'AI & 특허'),'?q=AI+%26+%ED%8A%B9%ED%97%88');
+ assert.equal(portfolioListPageQuery(3,'100%'),'?q=100%25&page=3');
+});

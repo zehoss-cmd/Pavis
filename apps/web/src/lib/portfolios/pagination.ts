@@ -14,3 +14,11 @@ export function portfolioPageQuery(page: number, query = ''): string {
   const value = params.toString();
   return value ? `?${value}` : '?';
 }
+
+export function portfolioListPageQuery(page: number, query: string): string {
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (page > 1) params.set('page', String(page));
+  const value = params.toString();
+  return value ? `?${value}` : '?';
+}
