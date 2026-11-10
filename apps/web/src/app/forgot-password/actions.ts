@@ -10,7 +10,7 @@ export async function requestRecovery(form: FormData) {
   const { error } = await supabase.auth.resetPasswordForEmail(email);
   if (error) {
     console.error('PAVIS password recovery request failed', { status: error.status, code: error.code });
-    redirect('/forgot-password?error=send');
+    redirect(error.status === 429 ? '/forgot-password?error=rate' : '/forgot-password?error=send');
   }
   redirect('/forgot-password?sent=1');
 }

@@ -9,7 +9,7 @@ export default async function ForgotPassword({ searchParams }: { searchParams: P
       <h1 id="recovery-heading">Reset your password</h1>
       <p className="recovery-intro">Request a verification code using your account email, then set a new password.</p>
       {sent && <p className="login-message" role="status">If an account exists for this email, a verification code will be sent. Check your inbox and spam folder.</p>}
-      {error && <p className="login-message" role="alert">{error === 'send' ? 'Unable to process your request. Please try again later.' : error === 'verify' ? 'Check your email and verification code. If the code has expired, request a new one.' : error === 'update' ? 'Unable to change your password. Please request a new verification code.' : 'Check your entries and confirm that your passwords match.'}</p>}
+      {error && <p className="login-message" role="alert">{error === 'rate' ? 'Too many requests. Please wait at least a minute before trying again. If the issue continues, try again later.' : error === 'send' ? 'Unable to process your request. Please try again later.' : error === 'verify' ? 'Check your email and verification code. If the code has expired, request a new one.' : error === 'update' ? 'Unable to change your password. Please request a new verification code.' : 'Check your entries and confirm that your passwords match.'}</p>}
       <h2>1. Get a verification code</h2>
       <form action={requestRecovery}>
         <label>Email address<input name="email" type="email" autoComplete="email" maxLength={254} required /></label>
