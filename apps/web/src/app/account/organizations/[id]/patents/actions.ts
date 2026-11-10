@@ -1,6 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { parseFamilySearch } from '@/lib/patents/family-search';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const statuses = ['unknown','pending','granted','rejected','withdrawn','expired','lapsed','revoked'];
 const root = (org:string) => `/account/organizations/${org}/patents`;
@@ -47,9 +48,14 @@ export async function manageFamily(form:FormData) {
   const org=read(form,'organization'),family=read(form,'family'),operation=read(form,'operation'),name=read(form,'name');
   if(!uuid.test(org)||!uuid.test(family)||!['update','delete'].includes(operation)) redirect('/account');
   const back=`${root(org)}/families`;
-  if(operation==='update' && (!name || Array.from(name).length>200)) redirect(`${back}?error=invalid`);
+  const context=parseFamilySearch({q:read(form,'q'),page:read(form,'page')});
+  const contextParams=new URLSearchParams();
+  if(context.q) contextParams.set('q',context.q);
+  if(context.page>1) contextParams.set('page',String(context.page));
+  const suffix=contextParams.toString()?`&${contextParams.toString()}`:'';
+  if(operation==='update' && (!name || Array.from(name).length>200)) redirect(`${back}?error=invalid${suffix}`);
   const supabase=await clientForUser();
   const result=operation==='update' ? await supabase.from('patent_families').update({name}).eq('organization_id',org).eq('id',family).select('id').maybeSingle() : await supabase.from('patent_families').delete().eq('organization_id',org).eq('id',family).select('id').maybeSingle();
-  if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23503'?'linked':'save'}`);
-  redirect(`${back}?${operation==='update'?'updated':'deleted'}=1`);
+  if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23503'?'linked':'save'}${suffix}`);
+  redirect(`${back}?${operation==='update'?'updated':'deleted'}=1${suffix}`);
 }
