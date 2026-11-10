@@ -140,3 +140,6 @@ button, input, select, textarea { font-family: inherit; }
 .login-panel label small.password-hint-invalid { color: #c72d3d; }
 .login-panel label small.password-hint-valid { color: #667085; }
 .login-panel button:disabled, .login-panel button:disabled:hover { background: #c5c9d0; color: #303844; cursor: not-allowed; }
+.recovery-panel h1 { margin-bottom: 14px; }
+.recovery-intro { margin: 0 0 28px; color: #667085; font-size: 13px; line-height: 1.6; text-align: center; }
+.recovery-panel h2 { margin: 30px 0 18px; color: #1e2c42; font-size: 15px; font-weight: 700; }
