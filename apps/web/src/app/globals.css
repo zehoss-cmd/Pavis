@@ -137,3 +137,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 button, input, select, textarea { font-family: inherit; }
 @media (max-width: 480px) { .login-links { gap: 6px; } .login-links a { padding: 8px 7px; font-size: 12px; } }
 .login-panel label small { color: #667085; font-size: 12px; font-weight: 400; }
+.login-panel label small.password-hint-invalid { color: #c72d3d; }
+.login-panel label small.password-hint-valid { color: #667085; }
+.login-panel button:disabled, .login-panel button:disabled:hover { background: #c5c9d0; color: #303844; cursor: not-allowed; }
