@@ -145,3 +145,105 @@ button, input, select, textarea { font-family: inherit; }
 .recovery-panel h2 { margin: 30px 0 18px; color: #1e2c42; font-size: 15px; font-weight: 700; }
 .recovery-timer { margin: -4px 0 0; color: #667085; font-size: 13px; line-height: 1.5; }
 .recovery-timer strong { color: #3b5384; font-variant-numeric: tabular-nums; }
+
+/* PAVIS workspace: compact, neutral application surfaces. */
+.workspace { --workspace-accent: #3b5384; --workspace-border: #dedee3; --workspace-muted: #697180; background: #f5f5f7; color: #20242c; }
+.workspace-header { height: 54px; padding: 0 24px; background: #fbfbfc; border-bottom: 1px solid var(--workspace-border); }
+.workspace-brand, .workspace-brand:hover { gap: 8px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #20242c; font-size: 19px; letter-spacing: -.04em; }
+.workspace-brand .brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--workspace-accent); font-size: 18px; }
+.workspace-header-actions { gap: 8px; color: #555d69; }
+.workspace-header-actions a, .workspace-header-actions button { min-height: 34px; padding: 7px 12px; border: 1px solid var(--workspace-border); border-radius: 8px; background: #fff; color: #414853; font-size: 12px; font-weight: 600; }
+.workspace-header-actions a:hover, .workspace-header-actions button:hover { background: #f0f1f3; border-color: #d0d2d7; }
+.workspace-body { min-height: calc(100vh - 54px); }
+.workspace-nav { width: 220px; gap: 0; padding: 18px 10px 14px; background: #f8f8fa; border-color: var(--workspace-border); }
+.workspace-nav .nav-label { margin: 0 10px 10px; color: #9097a2; font-size: 10px; letter-spacing: .08em; }
+.workspace-org-selector { margin: 0 2px 14px; color: #727986; }
+.workspace-org-selector select { min-height: 40px; border-color: #d7d9de; background: #fff; color: #252b34; }
+.workspace-org-name { margin: 0 2px 14px; padding: 10px; border: 1px solid #dedee3; border-radius: 8px; background: #fff; color: #727986; }
+.workspace-org-name strong { margin-top: 4px; color: #252b34; }
+.workspace-org-message { margin: 0 8px 12px; color: #707986; }
+.workspace-nav-items { display: grid; gap: 3px; }
+.workspace-nav .nav-item, .workspace-nav .nav-item:not(.nav-disabled):not(.is-active) { min-height: 38px; padding: 0 10px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #4e5663; font-size: 13px; font-weight: 500; }
+.workspace-nav .nav-item:not(.nav-disabled):hover { background: #ededf0; border-color: transparent; }
+.workspace-nav .nav-item.is-active { background: #e8e9ed; color: #263c68; font-weight: 700; }
+.workspace-nav .nav-item.nav-disabled { color: #9b9fa8; }
+.workspace-nav .nav-icon { display: inline-flex; width: 20px; justify-content: center; color: currentColor; }
+.workspace-nav .nav-item.is-active .nav-icon { color: var(--workspace-accent); }
+.workspace-nav .nav-disabled small { margin-left: auto; color: #8d95a0; }
+.workspace-nav .nav-footer { margin: auto 10px 0; padding-top: 28px; color: #979ca5; }
+.workspace-nav .nav-footer strong { color: #69717d; }
+.workspace-content { min-width: 0; }
+.dashboard { max-width: 1600px; padding: 36px 42px 72px; }
+.dashboard-heading { align-items: center; margin-bottom: 24px; }
+.dashboard-heading h1 { color: #1d222b; font-size: 23px; font-weight: 700; }
+.dashboard-heading > div > p:last-child { color: #707987; font-size: 13px; }
+.workspace-kicker { margin-bottom: 10px; color: #7c8490; font-size: 10px; }
+.account-pill { max-width: 260px; padding: 8px 12px; border-color: #e0e1e5; border-radius: 9px; background: #fbfbfc; color: #68717e; }
+.dashboard-grid { grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; }
+.dashboard-main, .dashboard-side { gap: 16px; }
+.panel { border: 1px solid #e0e1e5; border-radius: 10px; background: #fff; box-shadow: none; }
+.panel h2 { color: #222731; font-size: 15px; }
+.panel p { color: #707986; }
+.welcome-panel { min-height: 135px; gap: 16px; padding: 24px 26px; background: #fff; }
+.welcome-panel h2 { font-size: 18px; }
+.welcome-panel p { margin: 8px 0 0; }
+.panel-tag { margin-bottom: 10px; color: var(--workspace-accent); }
+.workspace-primary { flex: none; padding: 10px 14px; border-radius: 8px; background: var(--workspace-accent); color: #fff; }
+.workspace-primary:hover { background: #2e426c; }
+.organizations-panel, .create-panel, .guide-panel, .invite-panel { padding: 22px 24px; }
+.section-icon, .section-icon.purple, .section-icon.sky { width: 34px; height: 34px; border-radius: 8px; background: #f0f1f4; color: var(--workspace-accent); font-size: 16px; }
+.count-badge { background: #f0f1f3; color: #5f6874; }
+.organization-list { margin-top: 16px; }
+.organization-row { gap: 12px; padding: 15px 0; border-color: #ececef; }
+.org-avatar { width: 36px; height: 36px; border-radius: 8px; background: #edf0f5; color: var(--workspace-accent); }
+.org-name strong { color: #252b34; }
+.org-name small { color: #747e8b; }
+.organization-row > a, .organization-row > a:last-child { min-height: 34px; padding: 7px 10px; border-color: #dedfe4; border-radius: 8px; background: #fff; color: #354768; font-size: 12px; font-weight: 600; }
+.create-panel input { border-color: #d9dce1; }
+.create-panel button, .invite-panel button { border-radius: 8px; background: var(--workspace-accent); }
+.create-panel button:hover, .invite-panel button:hover { background: #2e426c; }
+.guide-panel li > span { background: #f0f1f3; color: #5e6878; }
+.guide-panel li small { color: #727c89; }
+.workspace-content .auth-page { min-height: calc(100vh - 54px); padding: 34px 42px 64px; }
+.workspace-content .auth-card { max-width: 1280px; padding: 28px 32px; border-color: #e0e1e5; border-radius: 10px; box-shadow: none; }
+.workspace-content .auth-card h1 { color: #20242c; font-size: 24px; }
+.workspace-content .auth-card h2 { color: #262c34; }
+.workspace-content .auth-card input, .workspace-content .auth-card select, .workspace-content .auth-card textarea { border-color: #d8dbe1; }
+.workspace-content .auth-card button:not(.danger-button):not(:disabled) { background: var(--workspace-accent); }
+.workspace-content .auth-card a:not(.logo):not(.patent-action) { border-color: #dce0e6; background: #fff; color: #354768; }
+.workspace-content .auth-card .patent-action { border-color: #e0e1e5; background: #fafafb; color: #28364b; }
+.workspace-content .auth-card .patent-action:hover { background: #f1f3f6; border-color: #cbd1da; }
+.workspace-content .auth-card .patent-action-icon { background: #edf0f5; color: var(--workspace-accent); }
+@media (max-width: 1050px) {
+  .dashboard { padding: 30px 26px 60px; }
+  .workspace-content .auth-page { padding: 28px 26px 60px; }
+}
+@media (max-width: 760px) {
+  .workspace-header { height: 54px; padding: 0 16px; }
+  .workspace-body { min-height: calc(100vh - 54px); }
+  .workspace-nav { display: flex; width: 100%; padding: 12px 16px 8px; flex-direction: column; align-items: stretch; gap: 0; overflow: visible; border-right: 0; border-bottom: 1px solid #dedee3; }
+  .workspace-nav .nav-label, .workspace-nav .nav-footer { display: none; }
+  .workspace-nav .workspace-org-selector { flex: none; width: 100%; margin: 0 0 10px; }
+  .workspace-nav .workspace-org-name { flex: none; width: 100%; max-width: none; margin: 0 0 10px; }
+  .workspace-nav .workspace-org-message { flex: none; max-width: none; margin: 0 2px 10px; }
+  .workspace-nav-items { display: flex; gap: 4px; width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+  .workspace-nav .nav-item, .workspace-nav .nav-item:not(.nav-disabled):not(.is-active) { flex: none; min-height: 38px; padding: 0 10px; font-size: 12px; }
+  .workspace-nav .nav-disabled small { margin-left: 0; }
+  .dashboard { padding: 24px 16px 48px; }
+  .dashboard-heading { align-items: flex-start; gap: 12px; }
+  .dashboard-heading h1 { font-size: 21px; }
+  .account-pill { max-width: 130px; font-size: 10px; }
+  .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
+  .welcome-panel { min-height: 0; padding: 20px; }
+  .welcome-panel h2 { font-size: 16px; }
+  .organizations-panel, .create-panel, .guide-panel, .invite-panel { padding: 20px; }
+  .organization-row .org-name { min-width: calc(100% - 52px); }
+  .organization-row > a { margin-left: 48px; }
+  .organization-row > a:last-child { margin-left: 0; }
+  .workspace-content .auth-page { min-height: 0; padding: 20px 16px 48px; }
+  .workspace-content .auth-card { padding: 24px 20px; }
+}
+@media (max-width: 380px) {
+  .welcome-panel { flex-wrap: wrap; }
+  .workspace-header-actions a, .workspace-header-actions button { padding: 7px 9px; }
+}
