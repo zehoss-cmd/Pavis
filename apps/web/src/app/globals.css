@@ -280,3 +280,10 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 @keyframes pavis-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (max-width: 760px) { .workspace-loading { padding: 32px 16px; } .pavis-dialog-actions button { flex: 1; } }
 @media (prefers-reduced-motion: reduce) { .loading-spinner, .loading-skeleton span, .pavis-dialog[open] { animation: none; } html { scroll-behavior: auto; } }
+
+/* Close feedback is limited to cancel; confirmation starts the requested action immediately. */
+.pavis-dialog.is-closing[open] { animation: pavis-dialog-out .16s ease-in forwards; }
+.pavis-dialog.is-closing::backdrop { animation: pavis-backdrop-out .16s ease-in forwards; }
+@keyframes pavis-dialog-out { to { opacity: 0; transform: translateY(6px) scale(.98); } }
+@keyframes pavis-backdrop-out { to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .pavis-dialog.is-closing[open], .pavis-dialog.is-closing::backdrop { animation: none; } }

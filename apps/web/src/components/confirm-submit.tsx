@@ -1,34 +1,67 @@
 'use client';
 
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 
 export function ConfirmSubmit({ message, children }: { message: string; children: React.ReactNode }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const confirmed = useRef(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousOverflow = useRef<string | null>(null);
+  const closingRef = useRef(false);
+  const [closing, setClosing] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
   const { pending } = useFormStatus();
 
+  function restoreScroll() {
+    if (previousOverflow.current !== null) {
+      document.body.style.overflow = previousOverflow.current;
+      previousOverflow.current = null;
+    }
+  }
+
+  function finishClose() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+    dialog.current?.close();
+    restoreScroll();
+    closingRef.current = false;
+    setClosing(false);
+  }
+
+  function cancel() {
+    if (closingRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { finishClose(); return; }
+    closingRef.current = true;
+    setClosing(true);
+    closeTimer.current = setTimeout(finishClose, 300);
+  }
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    restoreScroll();
+  }, []);
+
   return <>
-    <button ref={trigger} type="submit" className="danger-button" disabled={pending} onClick={event => {
-      if (confirmed.current) { confirmed.current = false; return; }
+    <button ref={trigger} type="submit" className="danger-button" disabled={pending} aria-busy={pending} onClick={event => {
       event.preventDefault();
-      if (event.currentTarget.form?.reportValidity()) dialog.current?.showModal();
+      if (!event.currentTarget.form?.reportValidity() || dialog.current?.open) return;
+      previousOverflow.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      dialog.current?.showModal();
     }}>{pending ? '처리 중...' : children}</button>
-    <dialog ref={dialog} className="pavis-dialog" aria-labelledby={titleId} aria-describedby={descriptionId}>
+    <dialog ref={dialog} className={`pavis-dialog${closing ? ' is-closing' : ''}`} aria-labelledby={titleId} aria-describedby={descriptionId}
+      onCancel={event => { event.preventDefault(); cancel(); }}
+      onAnimationEnd={event => { if (event.target === event.currentTarget && event.animationName === 'pavis-dialog-out') finishClose(); }}>
       <h2 id={titleId}>작업을 확인해 주세요</h2>
       <p id={descriptionId}>{message}</p>
       <div className="pavis-dialog-actions">
-        <button type="button" className="dialog-cancel" autoFocus onClick={() => dialog.current?.close()}>취소</button>
-        <button type="button" className="dialog-confirm" onClick={() => {
+        <button type="button" className="dialog-cancel" autoFocus disabled={closing} onClick={cancel}>취소</button>
+        <button type="button" className="dialog-confirm" disabled={closing || pending} onClick={() => {
           const button = trigger.current;
-          dialog.current?.close();
-          if (!button?.form) return;
-          confirmed.current = true;
-          button.form.requestSubmit(button);
-          confirmed.current = false;
+          finishClose();
+          button?.form?.requestSubmit(button);
         }}>확인</button>
       </div>
     </dialog>
