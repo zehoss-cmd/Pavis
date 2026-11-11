@@ -1,4 +1,5 @@
 'use client';
+import { SubmitButton } from '@/components/submit-button';
 
 import { useEffect, useRef } from 'react';
 import { login } from '../auth/actions';
@@ -37,6 +38,6 @@ export function LoginForm() {
     <label>Email address<input ref={email} name="email" type="email" autoComplete="email" required /></label>
     <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
     <label className="remember-email"><input ref={remember} type="checkbox" onChange={event => { if (!event.currentTarget.checked) { try { localStorage.removeItem(savedEmailKey); } catch { /* Storage may be disabled. */ } } }} />Remember me</label>
-    <button type="submit">Sign in</button>
+    <SubmitButton pendingLabel="Please wait...">Sign in</SubmitButton>
   </form>;
 }

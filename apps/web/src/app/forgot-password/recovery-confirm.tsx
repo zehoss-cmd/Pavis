@@ -1,5 +1,7 @@
 'use client';
 
+import { SubmitButton } from '@/components/submit-button';
+
 import { useEffect, useState } from 'react';
 import { confirmRecovery } from './actions';
 
@@ -16,6 +18,6 @@ export function RecoveryConfirm({ initialSeconds }: { initialSeconds: number }) 
   return <form action={confirmRecovery}>
     <label>Verification code<input name="token" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required disabled={seconds === 0} /></label>
     <p className="recovery-timer" aria-live={seconds === 0 ? "polite" : "off"}>{seconds > 0 ? <>Code expires in <strong>{time}</strong></> : 'Request a verification code to continue.'}</p>
-    <button type="submit" disabled={seconds === 0}>Confirm</button>
+    <SubmitButton disabled={seconds === 0} pendingLabel="Please wait...">Confirm</SubmitButton>
   </form>;
 }

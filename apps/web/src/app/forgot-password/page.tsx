@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/submit-button';
 import Link from 'next/link';
 import { recoveryRequestTiming } from './recovery-request-server';
 import { RecoveryConfirm } from './recovery-confirm';
@@ -14,7 +15,7 @@ export default async function ForgotPassword({ searchParams }: { searchParams: P
       {sent && <p className="login-message" role="status">If an account exists for this email, a verification code will be sent. Check your inbox and spam folder.</p>}
       {error && <p className="login-message" role="alert">{error === 'rate' ? 'Too many requests. Please wait at least a minute before trying again. If the issue continues, try again later.' : error === 'send' ? 'Unable to process your request. Please try again later.' : error === 'verify' ? 'Check your email and verification code. If the code has expired, request a new one.' : error === 'expired' ? 'Your verification has expired. Please request and confirm a new code.' : error === 'email_expired' ? 'Please request a verification code using your email address first.' : 'Check your email and verification code.'}</p>}
       <h2>Get a verification code</h2>
-      <form action={requestRecovery}><label>Email address<input name="email" type="email" autoComplete="email" maxLength={254} required /></label><button type="submit">Send verification code</button></form>
+      <form action={requestRecovery}><label>Email address<input name="email" type="email" autoComplete="email" maxLength={254} required /></label><SubmitButton pendingLabel="Please wait...">Send verification code</SubmitButton></form>
       <h2>Confirm verification code</h2>
       <RecoveryConfirm key={expiresAt} initialSeconds={remainingSeconds} />
       <nav className="login-links" aria-label="Account help"><Link href="/login">Back to sign in</Link></nav>

@@ -1,3 +1,4 @@
+import { SubmitButton } from '@/components/submit-button';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { recoverySession } from '../recovery-session';
@@ -14,7 +15,7 @@ export default async function NewPassword({ searchParams }: { searchParams: Prom
       <form action={resetPassword}>
         <label>New password<input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={72} required /><small>Use at least 8 characters, including a lowercase letter, an uppercase letter, and a number.</small></label>
         <label>Confirm new password<input name="confirm" type="password" autoComplete="new-password" minLength={8} maxLength={72} required /></label>
-        <button type="submit">Reset password</button>
+        <SubmitButton pendingLabel="Please wait...">Reset password</SubmitButton>
       </form>
       <nav className="login-links" aria-label="Account help"><Link href="/login">Back to sign in</Link></nav>
     </section>

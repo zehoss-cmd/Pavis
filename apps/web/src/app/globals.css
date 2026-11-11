@@ -254,3 +254,29 @@ button, input, select, textarea { font-family: inherit; }
 .workspace-content .auth-card .scenario-review p { margin: 0; color: #48556a; }
 .workspace-content .auth-card .scenario-review ul { margin: 10px 0 0; padding-left: 20px; color: #48556a; font-size: 13px; line-height: 1.6; }
 .workspace-content .auth-card .scenario-review li { padding: 3px 0; }
+
+/* Shared workspace feedback and confirmation */
+.workspace-loading { padding: 48px 42px; color: #566274; }
+.workspace-loading p { margin: 12px 0 24px; font-size: 14px; }
+.loading-spinner { display: block; width: 25px; height: 25px; border: 3px solid #dfe5ef; border-top-color: #3b5384; border-radius: 50%; animation: pavis-spin .8s linear infinite; }
+.loading-skeleton { max-width: 850px; display: grid; gap: 14px; }
+.loading-skeleton span { height: 72px; border-radius: 10px; background: #e9ebef; animation: pavis-pulse 1.5s ease-in-out infinite; }
+.loading-skeleton span:first-child { width: 55%; height: 24px; }
+.workspace-error h1 { color: #20242c; font-size: 22px; }
+.workspace-error-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.workspace-error-actions button, .workspace-error-actions a { min-height: 42px; padding: 10px 16px; border: 1px solid #d8dbe1; border-radius: 9px; background: #fff; color: #354768; font: inherit; cursor: pointer; }
+.pavis-dialog { width: min(440px, calc(100% - 32px)); max-height: min(80vh, 600px); overflow-y: auto; padding: 24px; border: 1px solid #e0e1e5; border-radius: 14px; background: #fff; color: #20242c; box-shadow: 0 18px 55px #17243b30; }
+.pavis-dialog[open] { animation: pavis-dialog-in .18s ease-out; }
+.pavis-dialog::backdrop { background: #11182780; }
+.workspace-content .auth-card .pavis-dialog h2 { margin: 0 0 12px; font-size: 18px; }
+.pavis-dialog p { line-height: 1.6; overflow-wrap: anywhere; }
+.pavis-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.workspace-content .auth-card .pavis-dialog-actions button { width: auto; min-height: 42px; padding: 10px 18px; border-radius: 9px; }
+.workspace-content .auth-card .pavis-dialog-actions button.dialog-cancel { border: 1px solid #d8dbe1; background: #fff; color: #354768; }
+.workspace-content .auth-card .pavis-dialog-actions button.dialog-confirm { background: #3b5384; color: #fff; }
+button:disabled { cursor: not-allowed; opacity: .65; }
+@keyframes pavis-spin { to { transform: rotate(360deg); } }
+@keyframes pavis-pulse { 50% { opacity: .55; } }
+@keyframes pavis-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) { .workspace-loading { padding: 32px 16px; } .pavis-dialog-actions button { flex: 1; } }
+@media (prefers-reduced-motion: reduce) { .loading-spinner, .loading-skeleton span, .pavis-dialog[open] { animation: none; } html { scroll-behavior: auto; } }
