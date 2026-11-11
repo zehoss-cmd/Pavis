@@ -7,10 +7,11 @@ export function parsePortfolioPage(value: unknown): number {
 export function parsePortfolioAssetQuery(value: unknown): string {
   return typeof value === 'string' ? value.trim().slice(0, 100) : '';
 }
-export function portfolioPageQuery(page: number, query = ''): string {
+export function portfolioPageQuery(page: number, query = '', choicePage = 1): string {
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
   if (query) params.set('asset_query', query);
+  if (choicePage > 1) params.set('choice_page', String(choicePage));
   const value = params.toString();
   return value ? `?${value}` : '?';
 }

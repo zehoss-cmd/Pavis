@@ -23,6 +23,8 @@ export async function changeAssignment(form:FormData) {
   if(page>1) params.set('page',String(page));
   const assetQuery=parsePortfolioAssetQuery(read(form,'asset_query'));
   if(assetQuery) params.set('asset_query',assetQuery);
+  const choicePage=parsePortfolioPage(read(form,'choice_page'));
+  if(choicePage>1) params.set('choice_page',String(choicePage));
   const context=params.toString()?`&${params.toString()}`:'';
   const result=operation==='add' ? await supabase.from('patent_portfolio_assets').insert({organization_id:org,portfolio_id:portfolio,asset_id:asset}).select('id').single() : await supabase.from('patent_portfolio_assets').delete().eq('organization_id',org).eq('portfolio_id',portfolio).eq('asset_id',asset).select('id').maybeSingle();
   if(result.error||!result.data) redirect(`${url}?error=${result.error?.code==='23505'?'duplicate':'save'}${context}`);

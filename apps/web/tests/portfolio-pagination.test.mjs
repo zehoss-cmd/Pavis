@@ -21,3 +21,8 @@ test('portfolio list page links preserve encoded search terms', async () => {
  assert.equal(portfolioListPageQuery(1,'AI & 특허'),'?q=AI+%26+%ED%8A%B9%ED%97%88');
  assert.equal(portfolioListPageQuery(3,'100%'),'?q=100%25&page=3');
 });
+
+test('candidate pages preserve the linked list page and literal search query', () => {
+ assert.equal(portfolioPageQuery(3, 'AI & 100%', 4), '?page=3&asset_query=AI+%26+100%25&choice_page=4');
+ assert.equal(portfolioPageQuery(1, '', 2), '?choice_page=2');
+});
