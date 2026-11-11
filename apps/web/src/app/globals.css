@@ -287,3 +287,13 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 @keyframes pavis-dialog-out { to { opacity: 0; transform: translateY(6px) scale(.98); } }
 @keyframes pavis-backdrop-out { to { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .pavis-dialog.is-closing[open], .pavis-dialog.is-closing::backdrop { animation: none; } }
+
+/* Empty list guidance */
+.workspace-content .auth-card .empty-state { display: flex; align-items: flex-start; gap: 14px; margin: 20px 0; padding: 22px; border: 1px solid #e0e1e5; border-radius: 10px; background: #fafafb; }
+.empty-state-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 10px; background: #edf0f5; color: #3b5384; font-size: 19px; }
+.empty-state-content { min-width: 0; }
+.workspace-content .auth-card .empty-state h2 { margin: 0; font-size: 15px; line-height: 1.5; }
+.workspace-content .auth-card .empty-state p { margin: 5px 0 0; color: #697180; font-size: 13px; line-height: 1.55; }
+.workspace-content .auth-card .empty-state .empty-state-action { display: inline-flex; align-items: center; min-height: 38px; margin-top: 14px; padding: 8px 13px; border: 1px solid #dce0e6; border-radius: 8px; background: #fff; color: #354768; font-size: 13px; font-weight: 600; }
+.workspace-content .auth-card .empty-state .empty-state-action:hover { background: #f0f2f6; }
+@media (max-width: 480px) { .workspace-content .auth-card .empty-state { padding: 16px; gap: 10px; } .empty-state-icon { width: 34px; height: 34px; } }
