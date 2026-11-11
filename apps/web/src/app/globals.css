@@ -331,3 +331,12 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 /* Match confirmation actions to their effect. */
 .workspace-content .auth-card .pavis-dialog-actions button.dialog-confirm-danger { background: #ad3434; color: #fff; }
 .workspace-content .auth-card .pavis-dialog-actions button.dialog-confirm-danger:hover { background: #8f2929; }
+
+/* Structured valuation inputs */
+.workspace-content .auth-card .valuation-fieldset { min-width: 0; margin: 0; padding: 16px; border: 1px solid #e0e1e5; border-radius: 10px; background: #fafafb; }
+.valuation-fieldset legend { padding: 0 6px; color: #354768; font-size: 13px; font-weight: 700; }
+.dcf-field-grid, .qualitative-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.qualitative-field-grid { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); }
+.dcf-field-wide { grid-column: 1 / -1; }
+.workspace-content .auth-card .valuation-fieldset label { min-width: 0; align-content: start; line-height: 1.45; }
+@media (max-width: 600px) { .dcf-field-grid, .qualitative-field-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; } .dcf-field-wide { grid-column: auto; } }
