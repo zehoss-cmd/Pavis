@@ -302,3 +302,8 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 .workspace-content .auth-card .load-error { margin: 18px 0; padding: 16px; border: 1px solid #ead4d4; border-radius: 10px; background: #fff9f9; }
 .workspace-content .auth-card .load-error p { margin: 0; color: #8b3d3d; font-size: 13px; line-height: 1.6; }
 .workspace-content .auth-card .load-error button { display: inline-flex; align-items: center; justify-content: center; width: auto; min-height: 38px; margin-top: 10px; padding: 8px 13px; border: 1px solid #d8dbe1; border-radius: 8px; font-size: 13px; }
+
+.download-control { display: inline-grid; justify-items: start; gap: 6px; max-width: 100%; vertical-align: top; }
+.workspace-content .auth-card .download-control button { width: auto; min-height: 40px; padding: 9px 14px; border-radius: 9px; font-size: 13px; }
+.download-control > span { max-width: 36rem; color: #586779; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.download-control > span[role="alert"] { color: #a33131; }
