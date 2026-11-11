@@ -327,3 +327,7 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 .import-table-wrap::-webkit-scrollbar-thumb, .cashflow-table-wrap::-webkit-scrollbar-thumb { border-radius: 6px; background: #aab3c1; }
 .workspace-content .asset-list li, .workspace-content .audit-list li, .workspace-content .auth-card h1, .workspace-content .org-name { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 760px) { .workspace-content .auth-card .table-scroll-hint { display: block; margin: 12px 0 4px; color: #697180; font-size: 12px; line-height: 1.5; } }
+
+/* Match confirmation actions to their effect. */
+.workspace-content .auth-card .pavis-dialog-actions button.dialog-confirm-danger { background: #ad3434; color: #fff; }
+.workspace-content .auth-card .pavis-dialog-actions button.dialog-confirm-danger:hover { background: #8f2929; }
