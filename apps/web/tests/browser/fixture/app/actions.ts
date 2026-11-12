@@ -37,3 +37,12 @@ export async function mockQualitySave(_previous:import('../../../../src/app/acco
  if(form.get('legal_note')==='인증 오류') return {error:'session'};
  return redirect('/?mock_quality_saved=1');
 }
+
+/** Simulate monetary draft failures without a database. */
+export async function mockDcfSave(_previous:import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ if(form.get('assumptions')==='저장 실패') return {error:'save'};
+ if(form.get('assumptions')==='연결 오류') return {error:'network'};
+ if(form.get('assumptions')==='인증 오류') return {error:'session'};
+ return redirect('/?mock_dcf_saved=1');
+}

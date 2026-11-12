@@ -184,3 +184,35 @@ for (const [label,button] of [['정성평가 초안 시험','초안 저장'],['�
   await expect(page).toHaveURL(/mock_quality_saved=1/);
  });
 }
+
+for (const [label,button] of [['금액평가 초안 시험','초안 저장 및 계산'],['금액평가 수정 시험','변경 저장']] as const) {
+ test(`${label}: monetary inputs survive save, connection and session errors`, async ({page}) => {
+  await page.goto('/');
+  const section=page.getByRole('region',{name:label});
+  if(label==='금액평가 초안 시험') await section.getByLabel('대상 특허').selectOption('asset2');
+  await section.getByLabel('평가 기준일').fill('2026-05-01');
+  await section.getByLabel('시나리오').selectOption('optimistic');
+  await section.locator('[name="currency"]').selectOption('USD');
+  for(const [name,value] of [['years','7'],['base_sales','1234.50'],['growth_rate','-10'],['royalty_rate','4.25'],['contribution_rate','80'],['annual_cost','0'],['tax_rate','20'],['discount_rate','9.5']] as const) await section.locator(`[name="${name}"]`).fill(value);
+  await section.getByLabel('가정의 근거와 출처').fill('저장 실패');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+  await expect(section.getByRole('alert')).toContainText('저장하지 못했습니다');
+  await expect(section.getByLabel('평가 기준일')).toHaveValue('2026-05-01');
+  await expect(section.getByLabel('시나리오')).toHaveValue('optimistic');
+  await expect(section.locator('[name="currency"]')).toHaveValue('USD');
+  for(const [name,value] of [['years','7'],['base_sales','1234.50'],['growth_rate','-10'],['royalty_rate','4.25'],['contribution_rate','80'],['annual_cost','0'],['tax_rate','20'],['discount_rate','9.5']] as const) await expect(section.locator(`[name="${name}"]`)).toHaveValue(value);
+  if(label==='금액평가 초안 시험') await expect(section.getByLabel('대상 특허')).toHaveValue('asset2');
+  await section.getByLabel('가정의 근거와 출처').fill('연결 오류');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('저장 여부를 확인');
+  await expect(section.locator('[name="annual_cost"]')).toHaveValue('0');
+  await section.getByLabel('가정의 근거와 출처').fill('인증 오류');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('로그인 상태를 확인');
+  await expect(section.locator('[name="currency"]')).toHaveValue('USD');
+  await section.getByLabel('가정의 근거와 출처').fill('확인된 가정');
+  await section.getByRole('button',{name:button}).click();
+  await expect(page).toHaveURL(/mock_dcf_saved=1/);
+ });
+}
