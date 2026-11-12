@@ -10,9 +10,12 @@ export default defineConfig({
  use: {
   baseURL: 'http://127.0.0.1:3198',
   browserName: 'chromium',
-  viewport: {width:375,height:850},
   launchOptions: process.env.PAVIS_CHROMIUM_PATH ? {executablePath:process.env.PAVIS_CHROMIUM_PATH} : {},
  },
+ projects: [
+  {name:'mobile',use:{viewport:{width:375,height:850}}},
+  {name:'desktop',use:{viewport:{width:1440,height:900}}},
+ ],
  webServer: {
   command: 'npx next dev fixture --hostname 127.0.0.1 --port 3198',
   url: 'http://127.0.0.1:3198',
