@@ -1,6 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { parseValuationPage, valuationResultQuery } from '@/lib/valuations/pagination';
 import type { DraftFormState } from './draft-form-state';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const read=(f:FormData,k:string)=>String(f.get(k)||'').trim();
@@ -11,8 +12,9 @@ export async function manageValuation(form:FormData) {
  const detailPath=read(form,'return_to_detail')==='1'?`${path}/${id}`:path;
  const supabase=await createClient();const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user) redirect('/login');
  const result=op==='delete'?await supabase.from('valuation_assessments').delete().eq('organization_id',org).eq('id',id).select('id').maybeSingle():await supabase.from('valuation_assessments').update({status:'final'}).eq('organization_id',org).eq('id',id).eq('status','draft').select('id').maybeSingle();
- if(result.error||!result.data) redirect(`${detailPath}?error=${op==='finalize'?'evidence':'save'}`);
- redirect(`${op==='delete'?path:detailPath}?${op}=1`);
+ if(result.error||!result.data) redirect(`${detailPath}?error=${op==='finalize'?'evidence':'save'}${detailPath===path&&parseValuationPage(read(form,'page'))>1?`&page=${parseValuationPage(read(form,'page'))}`:''}`);
+ const page=parseValuationPage(read(form,'page'));
+ redirect(detailPath===path ? `${path}${valuationResultQuery(op,page)}` : `${op==='delete'?path:detailPath}?${op}=1`);
 }
 
 export async function saveValuation(_previous:DraftFormState,form:FormData):Promise<DraftFormState> {
@@ -34,7 +36,7 @@ export async function saveValuation(_previous:DraftFormState,form:FormData):Prom
  try { result=op==='create'?await supabase.from('valuation_assessments').insert({...values,organization_id:org,asset_id:asset,model_id:model||null}).select('id').maybeSingle():await supabase.from('valuation_assessments').update(values).eq('organization_id',org).eq('id',id).eq('status','draft').select('id').maybeSingle(); }
  catch { return {error:'network'}; }
  if(result.error||!result.data) return {error:result.status===0?'network':'save'};
- redirect(`${detailPath}?${op}=1`);
+ redirect(detailPath===path && op==='update' ? `${path}${valuationResultQuery(op,parseValuationPage(read(form,'page')))}` : `${detailPath}?${op}=1`);
 }
 
 export async function copyValuation(form:FormData) {
