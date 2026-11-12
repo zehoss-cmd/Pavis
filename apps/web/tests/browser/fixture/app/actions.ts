@@ -1,5 +1,6 @@
 'use server';
 
+import { redirect } from 'next/navigation';
 import { parsePatentCsv, validateRows, normalizedNumber, maxCsvBytes } from '../../../../src/lib/patents/csv-import';
 import { parsePatentXlsx } from '../../../../src/lib/patents/xlsx-import';
 import type { ImportState } from '../../../../src/app/account/organizations/[id]/patents/import/state';
@@ -17,4 +18,13 @@ export async function mockImport(_state:ImportState,form:FormData):Promise<Impor
  if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
  const errors=parsed.rows.flatMap((row,index)=>normalizedNumber(row.application_number)==='EXISTS-001' ? [`데이터 ${index+1}번: 같은 국가의 출원번호가 이미 등록되어 있습니다.`] : []);
  return {stage:'preview',rows:parsed.rows,errors};
+}
+
+/** Simulate save errors without connecting to any database. */
+export async function mockPatentSave(_previous:import('../../../../src/app/account/organizations/[id]/patents/form-data').AssetFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/patents/form-data').AssetFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ if(form.get('application_number')==='DUP') return {error:'duplicate'};
+ if(form.get('application_number')==='NETWORK') return {error:'network'};
+ if(form.get('application_number')==='AUTH') return {error:'session'};
+ return redirect('/?mock_saved=1');
 }

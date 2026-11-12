@@ -111,3 +111,39 @@ test('old file errors and success messages clear when another file is selected',
  await file.setInputFiles({name:'next.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n다음 특허,KR,1002')});
  await expect(success).toHaveCount(0);
 });
+
+for (const [label,button] of [['특허 등록 시험','특허 등록'],['특허 수정 시험','변경 저장']] as const) {
+ test(`${label}: duplicate and network errors preserve fields for retry`, async ({page}) => {
+  await page.goto('/');
+  const section=page.getByRole('region',{name:label});
+  await section.getByLabel('발명의 명칭').fill('보존할 특허');
+  await section.getByLabel('관할 국가 코드').fill('KR');
+  await section.getByLabel('특허 패밀리').selectOption('family');
+  await section.getByLabel('출원번호').fill('DUP');
+  await section.getByLabel('권리자').fill('테스트 권리자');
+  await section.getByLabel('법적 상태').selectOption('granted');
+  await section.getByLabel('정보 출처').fill('테스트 출처');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+  await expect(section.getByLabel('발명의 명칭')).toBeDisabled();
+  await expect(section.getByRole('alert')).toContainText('동일한 출원번호');
+  await expect(section.getByLabel('발명의 명칭')).toHaveValue('보존할 특허');
+  await expect(section.getByLabel('특허 패밀리')).toHaveValue('family');
+  await expect(section.getByLabel('권리자')).toHaveValue('테스트 권리자');
+  await expect(section.getByLabel('법적 상태')).toHaveValue('granted');
+  await expect(section.getByLabel('정보 출처')).toHaveValue('테스트 출처');
+  await section.getByLabel('출원번호').fill('NETWORK');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('저장 여부를 확인');
+  await expect(section.getByLabel('발명의 명칭')).toHaveValue('보존할 특허');
+  await expect(section.getByLabel('정보 출처')).toHaveValue('테스트 출처');
+  await section.getByLabel('출원번호').fill('AUTH');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('로그인 상태를 확인');
+  await expect(section.getByLabel('발명의 명칭')).toHaveValue('보존할 특허');
+  await expect(section.getByLabel('법적 상태')).toHaveValue('granted');
+  await section.getByLabel('출원번호').fill('RETRY');
+  await section.getByRole('button',{name:button}).click();
+  await expect(page).toHaveURL(/mock_saved=1/);
+ });
+}
