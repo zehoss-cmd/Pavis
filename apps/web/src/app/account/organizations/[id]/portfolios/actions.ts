@@ -1,19 +1,23 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import type { DraftFormState } from '../valuations/draft-form-state';
 import { parsePortfolioPage, parsePortfolioAssetQuery } from '@/lib/portfolios/pagination';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const read=(form:FormData,key:string)=>String(form.get(key)||'').trim();
 const base=(org:string)=>`/account/organizations/${org}/portfolios`;
 async function client() { const supabase=await createClient(); const {data:{user},error}=await supabase.auth.getUser(); if(error || !user) redirect('/login'); return supabase; }
-export async function createPortfolio(form:FormData) {
-  const org=read(form,'organization'), name=read(form,'name'), description=read(form,'description');
-  if(!uuid.test(org)) redirect('/account');
-  if(!name || Array.from(name).length>200 || Array.from(description).length>500) redirect(`${base(org)}?error=invalid`);
-  const supabase=await client();
-  const {data,error}=await supabase.from('patent_portfolios').insert({organization_id:org,name,description:description||null}).select('id').single();
-  if(error || !data) redirect(`${base(org)}?error=save`);
-  redirect(`${base(org)}/${data.id}?created=1`);
+export async function savePortfolio(_previous:DraftFormState,form:FormData):Promise<DraftFormState> {
+  const org=read(form,'organization'), portfolio=read(form,'portfolio'), operation=read(form,'operation'), name=read(form,'name'), description=read(form,'description');
+  if(!uuid.test(org)||!['create','update'].includes(operation)||(operation==='update'&&!uuid.test(portfolio))||!name||Array.from(name).length>200||Array.from(description).length>500) return {error:'invalid'};
+  let supabase:Awaited<ReturnType<typeof createClient>>;
+  try { supabase=await createClient(); const {data:{user},error}=await supabase.auth.getUser(); if(error||!user) return {error:'session'}; }
+  catch { return {error:'network'}; }
+  let result;
+  try { result=operation==='create' ? await supabase.from('patent_portfolios').insert({organization_id:org,name,description:description||null}).select('id').single() : await supabase.from('patent_portfolios').update({name,description:description||null}).eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle(); }
+  catch { return {error:'network'}; }
+  if(result.error||!result.data) return {error:result.status===0?'network':'save'};
+  redirect(operation==='create' ? `${base(org)}/${result.data.id}?created=1` : `${base(org)}/${portfolio}?updated=1`);
 }
 export async function changeAssignment(form:FormData) {
   const org=read(form,'organization'),portfolio=read(form,'portfolio'),asset=read(form,'asset'),operation=read(form,'operation');
@@ -31,12 +35,11 @@ export async function changeAssignment(form:FormData) {
   redirect(`${url}?${operation==='add'?'added':'removed'}=1${context}`);
 }
 export async function managePortfolio(form:FormData) {
-  const org=read(form,'organization'),portfolio=read(form,'portfolio'),operation=read(form,'operation'),name=read(form,'name'),description=read(form,'description');
-  if(!uuid.test(org)||!uuid.test(portfolio)||!['update','delete'].includes(operation)) redirect('/account');
+  const org=read(form,'organization'),portfolio=read(form,'portfolio'),operation=read(form,'operation');
+  if(!uuid.test(org)||!uuid.test(portfolio)||operation!=='delete') redirect('/account');
   const back=`${base(org)}/${portfolio}`;
-  if(operation==='update' && (!name || Array.from(name).length>200 || Array.from(description).length>500)) redirect(`${back}?error=invalid`);
   const supabase=await client();
-  const result=operation==='update' ? await supabase.from('patent_portfolios').update({name,description:description||null}).eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle() : await supabase.from('patent_portfolios').delete().eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle();
+  const result=await supabase.from('patent_portfolios').delete().eq('organization_id',org).eq('id',portfolio).select('id').maybeSingle();
   if(result.error || !result.data) redirect(`${back}?error=${result.error?.code==='23503'?'linked':'save'}`);
-  redirect(operation==='update' ? `${back}?updated=1` : `${base(org)}?deleted=1`);
+  redirect(`${base(org)}?deleted=1`);
 }

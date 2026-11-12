@@ -216,3 +216,22 @@ for (const [label,button] of [['금액평가 초안 시험','초안 저장 및 �
   await expect(page).toHaveURL(/mock_dcf_saved=1/);
  });
 }
+
+for (const [label,button] of [['포트폴리오 생성 시험','포트폴리오 생성'],['포트폴리오 수정 시험','변경 저장']] as const) {
+ test(`${label}: portfolio inputs survive save, connection and session errors`, async ({page}) => {
+  await page.goto('/');
+  const section=page.getByRole('region',{name:label});
+  await section.getByLabel('이름').fill('유지할 포트폴리오');
+  for(const [value,message] of [['저장 실패','저장하지 못했습니다'],['연결 오류','포트폴리오 목록에서 저장 여부를 확인'],['인증 오류','로그인 상태를 확인']] as const) {
+   await section.getByLabel('설명').fill(value);
+   await section.getByRole('button',{name:button}).click();
+   await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+   await expect(section.getByRole('alert')).toContainText(message);
+   await expect(section.getByLabel('이름')).toHaveValue('유지할 포트폴리오');
+   await expect(section.getByLabel('설명')).toHaveValue(value);
+  }
+  await section.getByLabel('설명').fill('확인된 설명');
+  await section.getByRole('button',{name:button}).click();
+  await expect(page).toHaveURL(/mock_portfolio_saved=1/);
+ });
+}

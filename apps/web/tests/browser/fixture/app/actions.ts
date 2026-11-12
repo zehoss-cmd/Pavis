@@ -46,3 +46,12 @@ export async function mockDcfSave(_previous:import('../../../../src/app/account/
  if(form.get('assumptions')==='인증 오류') return {error:'session'};
  return redirect('/?mock_dcf_saved=1');
 }
+
+/** Simulate portfolio save failures without a database. */
+export async function mockPortfolioSave(_previous:import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ if(form.get('description')==='저장 실패') return {error:'save'};
+ if(form.get('description')==='연결 오류') return {error:'network'};
+ if(form.get('description')==='인증 오류') return {error:'session'};
+ return redirect('/?mock_portfolio_saved=1');
+}
