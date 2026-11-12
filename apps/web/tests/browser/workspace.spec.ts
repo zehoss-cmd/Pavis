@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
 
 test('changing the selected file requires a new preview before import', async ({page}) => {
  await page.goto('/');
  const file=page.locator('input[type=file]');
- await file.setInputFiles({name:'first.csv',mimeType:'text/csv',buffer:Buffer.from('title\nfirst')});
+ await file.setInputFiles({name:'first.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\nfirst.csv,KR,1001')});
  await page.getByRole('button',{name:'파일 검토',exact:true}).click();
  await expect(page.getByRole('cell',{name:'first.csv'})).toBeVisible();
  await expect(page.getByRole('button',{name:'확인 후 등록'})).toBeVisible();
- await file.setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:Buffer.from('title\nsecond')});
+ await file.setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\nsecond.csv,KR,1002')});
  await expect(page.getByText('파일이 변경되었습니다.',{exact:false})).toBeVisible();
  await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
  await page.getByRole('button',{name:'파일 검토',exact:true}).click();
@@ -60,4 +61,53 @@ test('download reports pending, successful file and errors without saving HTML',
  status=200; type='text/html';
  await button.click();
  await expect(downloadSection.getByRole('alert')).toContainText('파일을 준비하지 못했습니다');
+});
+
+
+test('invalid and duplicate CSV rows cannot be registered', async ({page}) => {
+ await page.goto('/');
+ const file=page.locator('input[type=file]');
+ const select=async (name:string,content:string) => {
+  await file.setInputFiles({name,mimeType:'text/csv',buffer:Buffer.from(content)});
+  await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ };
+ await select('invalid.csv','title,jurisdiction,application_number\n특허,K,');
+ await expect(page.getByRole('alert').filter({hasText:'국가는 KR'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+ await file.setInputFiles({name:'duplicate.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n첫 특허,KR,AB 1\n둘째 특허,kr,ab1')});
+ await expect(page.getByText('파일이 변경되었습니다.',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('alert').filter({hasText:'국가·출원번호가 중복'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+ await select('existing.csv','title,jurisdiction,application_number\n기존 특허,KR,EXISTS-001');
+ await expect(page.getByRole('alert').filter({hasText:'이미 등록되어 있습니다'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+});
+
+test('a real XLSX fixture is previewed and can be confirmed', async ({page}) => {
+ await page.goto('/');
+ await page.locator('input[type=file]').setInputFiles(path.resolve(__dirname,'../fixtures/patent-excel.xlsx'));
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('cell',{name:'실제 엑셀 양식'})).toBeVisible();
+ await expect(page.getByRole('cell',{name:'001234'})).toBeVisible();
+ await expect(page.getByRole('cell',{name:'2025-02-14'})).toBeVisible();
+ await page.getByRole('button',{name:'확인 후 등록'}).click();
+ await expect(page.getByText('1건의 특허를 등록했습니다.',{exact:false})).toBeVisible();
+});
+
+test('old file errors and success messages clear when another file is selected', async ({page}) => {
+ await page.goto('/');
+ const file=page.locator('input[type=file]');
+ await file.setInputFiles({name:'empty.csv',mimeType:'text/csv',buffer:Buffer.alloc(0)});
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('alert').filter({hasText:'파일은 비어 있지 않아야'})).toBeVisible();
+ await file.setInputFiles({name:'valid.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n새 특허,KR,1001')});
+ await expect(page.getByRole('alert').filter({hasText:'파일은 비어 있지 않아야'})).toHaveCount(0);
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('cell',{name:'새 특허'})).toBeVisible();
+ await page.getByRole('button',{name:'확인 후 등록'}).click();
+ const success=page.getByText('1건의 특허를 등록했습니다.',{exact:false});
+ await expect(success).toBeVisible();
+ await file.setInputFiles({name:'next.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n다음 특허,KR,1002')});
+ await expect(success).toHaveCount(0);
 });
