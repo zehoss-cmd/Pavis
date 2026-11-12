@@ -340,3 +340,5 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 .dcf-field-wide { grid-column: 1 / -1; }
 .workspace-content .auth-card .valuation-fieldset label { min-width: 0; align-content: start; line-height: 1.45; }
 @media (max-width: 600px) { .dcf-field-grid, .qualitative-field-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; } .dcf-field-wide { grid-column: auto; } }
+
+.draft-form-fields { display: grid; gap: 20px; min-width: 0; margin: 0; padding: 0; border: 0; }

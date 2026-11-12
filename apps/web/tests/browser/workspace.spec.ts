@@ -147,3 +147,40 @@ for (const [label,button] of [['특허 등록 시험','특허 등록'],['특허 
   await expect(page).toHaveURL(/mock_saved=1/);
  });
 }
+
+for (const [label,button] of [['정성평가 초안 시험','초안 저장'],['정성평가 수정 시험','변경 저장']] as const) {
+ test(`${label}: draft inputs survive save, connection and session errors`, async ({page}) => {
+  await page.goto('/');
+  const section=page.getByRole('region',{name:label});
+  if(label==='정성평가 초안 시험') {
+   await section.getByLabel('대상 특허').selectOption('asset2');
+   await section.getByLabel('평가 모델').selectOption('model2');
+  }
+  await section.getByLabel('평가 기준일').fill('2026-05-01');
+  for (const [name,value] of [['법적 안정성 점수','0'],['기술성 점수','2'],['시장성 점수','3'],['사업화 가능성 점수','4']] as const) await section.getByLabel(name).selectOption(value);
+  await section.getByLabel('법적 안정성 근거').fill('저장 실패');
+  await section.getByLabel('기술성 근거').fill('유지할 근거');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+  await expect(section.getByRole('alert')).toContainText('저장하지 못했습니다');
+  await expect(section.getByLabel('평가 기준일')).toHaveValue('2026-05-01');
+  await expect(section.getByLabel('법적 안정성 점수')).toHaveValue('0');
+  await expect(section.getByLabel('기술성 점수')).toHaveValue('2');
+  await expect(section.getByLabel('기술성 근거')).toHaveValue('유지할 근거');
+  if(label==='정성평가 초안 시험') {
+   await expect(section.getByLabel('대상 특허')).toHaveValue('asset2');
+   await expect(section.getByLabel('평가 모델')).toHaveValue('model2');
+  }
+  await section.getByLabel('법적 안정성 근거').fill('연결 오류');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('저장 여부를 확인');
+  await expect(section.getByLabel('기술성 근거')).toHaveValue('유지할 근거');
+  await section.getByLabel('법적 안정성 근거').fill('인증 오류');
+  await section.getByRole('button',{name:button}).click();
+  await expect(section.getByRole('alert')).toContainText('로그인 상태를 확인');
+  await expect(section.getByLabel('법적 안정성 점수')).toHaveValue('0');
+  await section.getByLabel('법적 안정성 근거').fill('확인된 근거');
+  await section.getByRole('button',{name:button}).click();
+  await expect(page).toHaveURL(/mock_quality_saved=1/);
+ });
+}

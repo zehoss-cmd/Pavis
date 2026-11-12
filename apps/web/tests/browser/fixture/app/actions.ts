@@ -28,3 +28,12 @@ export async function mockPatentSave(_previous:import('../../../../src/app/accou
  if(form.get('application_number')==='AUTH') return {error:'session'};
  return redirect('/?mock_saved=1');
 }
+
+/** Simulate qualitative draft failures without a database. */
+export async function mockQualitySave(_previous:import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/valuations/draft-form-state').DraftFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ if(form.get('legal_note')==='저장 실패') return {error:'save'};
+ if(form.get('legal_note')==='연결 오류') return {error:'network'};
+ if(form.get('legal_note')==='인증 오류') return {error:'session'};
+ return redirect('/?mock_quality_saved=1');
+}
