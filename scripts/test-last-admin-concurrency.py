@@ -5,7 +5,13 @@ import os
 import subprocess
 import uuid
 
-DB_COMMAND = ['psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-h', '127.0.0.1', '-p', '54322', '-U', 'postgres', '-d', 'postgres']
+mode = os.environ.get('PAVIS_TEST_DB_MODE', 'local')
+if mode == 'local':
+    DB_COMMAND = ['psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-h', '127.0.0.1', '-p', '54322', '-U', 'postgres', '-d', 'postgres']
+elif mode == 'container':
+    DB_COMMAND = ['docker', 'exec', '-i', 'supabase_db_PAVIS', 'psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-U', 'postgres', '-d', 'postgres']
+else:
+    raise SystemExit('Unsupported local test database mode')
 env = {**os.environ, 'PGPASSWORD': 'postgres'}
 org, admin_a, admin_b = (str(uuid.uuid4()) for _ in range(3))
 
