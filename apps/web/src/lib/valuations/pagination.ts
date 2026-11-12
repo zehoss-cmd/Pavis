@@ -45,3 +45,16 @@ export function modelListPageQuery(page: number, query: string): string {
   const value = params.toString();
   return value ? `?${value}#model-list` : '?#model-list';
 }
+
+export function comparisonAssetPageQuery(assetPage: number, query: string, filter: {asset:string;date:string;currency:string} | null): string {
+  const params = new URLSearchParams();
+  if (query) params.set('asset_query', query);
+  if (assetPage > 1) params.set('asset_page', String(assetPage));
+  if (filter) {
+    params.set('asset', filter.asset);
+    params.set('date', filter.date);
+    params.set('currency', filter.currency);
+  }
+  const value = params.toString();
+  return value ? `?${value}#comparison-asset-search` : '?#comparison-asset-search';
+}

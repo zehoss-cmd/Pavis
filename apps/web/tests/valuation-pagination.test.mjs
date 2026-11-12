@@ -33,3 +33,9 @@ test('model search links preserve selected model and encode query', async()=>{
  assert.equal(assessmentAssetPageQuery(2,'AI',3,'asset-id','model-id'),'?asset_query=AI&asset_page=2&page=3&asset=asset-id&model=model-id#create-assessment');
  assert.equal(valuationPageQuery(2,'asset-id','AI',3,'model-id'),'?page=2&asset=asset-id&asset_query=AI&asset_page=3&model=model-id#valuation-records');
 });
+
+test('scenario asset page links preserve completed comparison criteria', async()=>{
+ const {comparisonAssetPageQuery}=await import('../src/lib/valuations/pagination.ts');
+ assert.equal(comparisonAssetPageQuery(1,'',null),'?#comparison-asset-search');
+ assert.equal(comparisonAssetPageQuery(2,'AI & 특허',{asset:'asset-id',date:'2026-01-02',currency:'KRW'}),'?asset_query=AI+%26+%ED%8A%B9%ED%97%88&asset_page=2&asset=asset-id&date=2026-01-02&currency=KRW#comparison-asset-search');
+});
