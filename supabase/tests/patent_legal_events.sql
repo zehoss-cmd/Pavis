@@ -43,6 +43,19 @@ select public.registry_recycle_restore('a1000000-0000-4000-8000-000000000001',cu
 do $$ declare n int; begin select count(*) into n from public.patent_legal_events where id=current_setting('test.event_id')::uuid and note='updated' and source='공보' and created_by='a0000000-0000-4000-8000-000000000001'; if n<>1 then raise exception 'history restoration lost data'; end if; end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000001',true);
 do $$ declare n int; begin select count(*) into n from public.audit_logs where organization_id='a1000000-0000-4000-8000-000000000001' and action in ('patent.legal_event.created','patent.legal_event.updated','patent.legal_event.deleted','patent.legal_event.restored'); if n<>5 then raise exception 'history audit missing: %',n; end if; end $$;
+-- Verify stable same-date page boundaries and tenant isolation for history.
+insert into public.patent_legal_events(organization_id,asset_id,event_date,legal_status)
+select 'a1000000-0000-4000-8000-000000000001',current_setting('test.event_asset_a')::uuid,'2030-01-01','pending' from generate_series(1,26);
+do $$ declare first_count int; next_count int; overlap_count int; begin
+ select count(*) into first_count from (select id from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and asset_id=current_setting('test.event_asset_a')::uuid and event_date='2030-01-01' order by event_date desc,id desc limit 26 offset 0) p;
+ select count(*) into next_count from (select id from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and asset_id=current_setting('test.event_asset_a')::uuid and event_date='2030-01-01' order by event_date desc,id desc limit 26 offset 25) p;
+ select count(*) into overlap_count from (select id from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and asset_id=current_setting('test.event_asset_a')::uuid and event_date='2030-01-01' order by event_date desc,id desc limit 25 offset 0) a join (select id from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and asset_id=current_setting('test.event_asset_a')::uuid and event_date='2030-01-01' order by event_date desc,id desc limit 25 offset 25) b using(id);
+ if first_count<>26 or next_count<>1 or overlap_count<>0 then raise exception 'legal event page boundary failed'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000003',true);
+do $$ declare n int; begin select count(*) into n from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and event_date='2030-01-01'; if n<>26 then raise exception 'viewer cannot read paged history'; end if; end $$;
+select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
+do $$ declare n int; begin select count(*) into n from public.patent_legal_events where organization_id='a1000000-0000-4000-8000-000000000001' and event_date='2030-01-01'; if n<>0 then raise exception 'paged history leaks across organizations'; end if; end $$;
 set local role anon;
 do $$ begin begin perform * from public.patent_legal_events; raise exception 'anonymous read accepted'; exception when insufficient_privilege then null; end; end $$;
 rollback;
