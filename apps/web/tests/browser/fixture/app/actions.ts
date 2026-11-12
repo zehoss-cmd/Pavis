@@ -55,3 +55,15 @@ export async function mockPortfolioSave(_previous:import('../../../../src/app/ac
  if(form.get('description')==='인증 오류') return {error:'session'};
  return redirect('/?mock_portfolio_saved=1');
 }
+
+/** Simulate model registration responses without database writes. */
+export async function mockModelSave(_previous:import('../../../../src/app/account/organizations/[id]/valuations/models/form-state').ModelFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/valuations/models/form-state').ModelFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ const weights=['legal','technical','market','commercial'].map(k=>Number(form.get(`${k}_weight`)));
+ if(weights.reduce((sum,value)=>sum+value,0)!==100) return {error:'invalid'};
+ if(form.get('version')==='duplicate') return {error:'duplicate'};
+ if(form.get('version')==='network') return {error:'network'};
+ if(form.get('version')==='session') return {error:'session'};
+ if(form.get('version')==='save') return {error:'save'};
+ return redirect('/?mock_model_saved=1');
+}

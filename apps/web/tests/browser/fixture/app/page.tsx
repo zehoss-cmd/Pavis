@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { ImportFormView } from '../../../../src/app/account/organizations/[id]/patents/import/import-form';
-import { mockImport, mockPatentSave, mockQualitySave, mockDcfSave, mockPortfolioSave } from './actions';
+import { mockImport, mockPatentSave, mockQualitySave, mockDcfSave, mockPortfolioSave, mockModelSave } from './actions';
 import { AssetFormClient } from '../../../../src/app/account/organizations/[id]/patents/form-client';
+import { ModelForm } from '../../../../src/app/account/organizations/[id]/valuations/models/form';
 import { DraftForm } from '../../../../src/app/account/organizations/[id]/valuations/draft-form';
 import { QualitativeFields } from '../../../../src/app/account/organizations/[id]/valuations/qualitative-fields';
 import { DcfFields } from '../../../../src/app/account/organizations/[id]/valuations/dcf/dcf-fields';
@@ -24,6 +25,7 @@ export default function Fixture() {
   <section aria-label="금액평가 수정 시험"><DraftForm action={mockDcfSave}><DcfFields item={{valuation_date:'2026-01-01',scenario:'base',currency:'KRW',years:5,base_sales:100,growth_rate:0,royalty_rate:2,contribution_rate:50,annual_cost:0,tax_rate:10,discount_rate:8,assumptions:'기존 근거'}}/><SubmitButton>변경 저장</SubmitButton></DraftForm></section>
   <section aria-label="포트폴리오 생성 시험"><DraftForm action={mockPortfolioSave} subject="포트폴리오"><input type="hidden" name="operation" value="create"/><label>이름<input name="name" required/></label><label>설명<input name="description"/></label><SubmitButton>포트폴리오 생성</SubmitButton></DraftForm></section>
   <section aria-label="포트폴리오 수정 시험"><DraftForm action={mockPortfolioSave} subject="포트폴리오"><input type="hidden" name="operation" value="update"/><label>이름<input name="name" defaultValue="기존 이름" required/></label><label>설명<input name="description" defaultValue="기존 설명"/></label><SubmitButton>변경 저장</SubmitButton></DraftForm></section>
+  <section aria-label="모델 등록 시험"><ModelForm org="test-only" action={mockModelSave}/></section>
   <section aria-label="확인 팝업"><form onSubmit={event=>{event.preventDefault();setSubmitted(value=>value+1)}}><ConfirmSubmit message="특허 견본을 삭제할까요?">특허 삭제</ConfirmSubmit></form><output aria-label="제출 횟수">{submitted}</output></section>
   <section aria-label="다운로드"><DownloadButton href="/test-download" filename="example.csv" format="csv">CSV 다운로드</DownloadButton></section>
  </div></div></div></main>;

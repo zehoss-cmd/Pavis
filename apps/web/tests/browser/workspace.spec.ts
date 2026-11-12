@@ -281,3 +281,30 @@ test('keyboard focus remains visible on text fields and selectors', async ({page
  await expect(select).toHaveCSS('outline-style','solid');
  await expect(select).toHaveCSS('outline-width','3px');
 });
+
+
+test('model registration preserves weights and text after failures', async ({page}) => {
+ await page.goto('/');
+ const section=page.getByRole('region',{name:'모델 등록 시험'});
+ const button=section.getByRole('button',{name:'모델 버전 등록'});
+ await section.getByLabel('모델 이름').fill('장기 기술 평가');
+ await section.getByLabel('버전').fill('duplicate');
+ await section.getByLabel('기준 설명 및 출처').fill('작성한 가중치 근거');
+ for(const [name,value] of [['legal','40'],['technical','30'],['market','20'],['commercial','0']] as const) await section.locator(`[name="${name}_weight"]`).fill(value);
+ await button.click();
+ await expect(section.getByRole('alert')).toContainText('합계 100%');
+ await expect(section.locator('[name="legal_weight"]')).toHaveValue('40');
+ await section.locator('[name="commercial_weight"]').fill('10');
+ for(const [value,message] of [['duplicate','같은 이름과 버전'],['network','모델 목록에서 등록 여부'],['session','로그인 상태'],['save','등록하지 못했습니다']] as const) {
+  await section.getByLabel('버전').fill(value);
+  await button.click();
+  await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+  await expect(section.getByRole('alert')).toContainText(message);
+  await expect(section.getByLabel('모델 이름')).toHaveValue('장기 기술 평가');
+  await expect(section.getByLabel('기준 설명 및 출처')).toHaveValue('작성한 가중치 근거');
+  for(const [name,weight] of [['legal','40'],['technical','30'],['market','20'],['commercial','10']] as const) await expect(section.locator(`[name="${name}_weight"]`)).toHaveValue(weight);
+ }
+ await section.getByLabel('버전').fill('v2');
+ await button.click();
+ await expect(page).toHaveURL(/mock_model_saved=1/);
+});
