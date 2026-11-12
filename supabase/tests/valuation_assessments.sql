@@ -73,8 +73,17 @@ do $$ declare first_count int; next_count int; overlap_count int; begin
  select count(*) into overlap_count from (select id from public.valuation_assessments where organization_id='a1000000-0000-4000-8000-000000000001' and assessment_date='2030-01-01' order by assessment_date desc,id desc limit 25 offset 0) a join (select id from public.valuation_assessments where organization_id='a1000000-0000-4000-8000-000000000001' and assessment_date='2030-01-01' order by assessment_date desc,id desc limit 25 offset 25) b using(id);
  if first_count<>26 or next_count<>1 or overlap_count<>0 then raise exception 'assessment pagination boundary failed'; end if;
 end $$;
+-- The assessment picker can search and page more than 25 matching assets.
+insert into public.patent_assets(organization_id,title,jurisdiction)
+select 'a1000000-0000-4000-8000-000000000001','Picker search sample','KR' from generate_series(1,26);
+do $$ declare first_count int; next_count int; overlap_count int; begin
+ select count(*) into first_count from (select id from public.patent_assets where organization_id='a1000000-0000-4000-8000-000000000001' and title ilike '%picker search%' order by title,id limit 26 offset 0) p;
+ select count(*) into next_count from (select id from public.patent_assets where organization_id='a1000000-0000-4000-8000-000000000001' and title ilike '%picker search%' order by title,id limit 26 offset 25) p;
+ select count(*) into overlap_count from (select id from public.patent_assets where organization_id='a1000000-0000-4000-8000-000000000001' and title ilike '%picker search%' order by title,id limit 25 offset 0) a join (select id from public.patent_assets where organization_id='a1000000-0000-4000-8000-000000000001' and title ilike '%picker search%' order by title,id limit 25 offset 25) b using(id);
+ if first_count<>26 or next_count<>1 or overlap_count<>0 then raise exception 'assessment asset picker pagination failed'; end if;
+end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
-do $$ declare n int; begin select count(*) into n from public.valuation_assessments where organization_id='a1000000-0000-4000-8000-000000000001' and assessment_date='2030-01-01'; if n<>0 then raise exception 'paginated records leak across organizations'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.valuation_assessments where organization_id='a1000000-0000-4000-8000-000000000001' and assessment_date='2030-01-01'; if n<>0 then raise exception 'paginated records leak across organizations'; end if; select count(*) into n from public.patent_assets where organization_id='a1000000-0000-4000-8000-000000000001' and title ilike '%picker search%'; if n<>0 then raise exception 'assessment asset search leaks across organizations'; end if; end $$;
 set local role anon;
 do $$ begin begin perform public.copy_qualitative_assessment('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid); raise exception 'anonymous copy accepted'; exception when insufficient_privilege then null; end; end $$;
 do $$ begin begin perform public.qualitative_export_snapshot('a1000000-0000-4000-8000-000000000001',current_setting('test.valuation')::uuid); raise exception 'anonymous export accepted'; exception when insufficient_privilege then null; end; end $$;

@@ -6,10 +6,12 @@ export function parseValuationPage(value: unknown): number {
   return Math.min(Number(value), valuationMaxPage);
 }
 
-export function valuationPageQuery(page: number, asset: string | null = ''): string {
+export function valuationPageQuery(page: number, asset: string | null = '', assetQuery = '', assetPage = 1): string {
   const params = new URLSearchParams();
   if (page > 1) params.set('page', String(page));
   if (asset) params.set('asset', asset);
+  if (assetQuery) params.set('asset_query', assetQuery);
+  if (assetPage > 1) params.set('asset_page', String(assetPage));
   const query = params.toString();
   return query ? `?${query}#valuation-records` : '?#valuation-records';
 }
@@ -18,4 +20,18 @@ export function valuationResultQuery(flag: string, page: number): string {
   const params = new URLSearchParams({[flag]:'1'});
   if (page > 1) params.set('page', String(page));
   return `?${params.toString()}#valuation-records`;
+}
+
+export function parseAssessmentAssetQuery(value: unknown): string {
+  return typeof value === 'string' ? value.trim().slice(0,100) : '';
+}
+
+export function assessmentAssetPageQuery(assetPage: number, assetQuery: string, page: number, asset: string | null): string {
+  const params = new URLSearchParams();
+  if (assetQuery) params.set('asset_query', assetQuery);
+  if (assetPage > 1) params.set('asset_page', String(assetPage));
+  if (page > 1) params.set('page', String(page));
+  if (asset) params.set('asset', asset);
+  const query = params.toString();
+  return query ? `?${query}#create-assessment` : '?#create-assessment';
 }
