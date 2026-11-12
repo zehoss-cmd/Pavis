@@ -25,3 +25,11 @@ test('assessment asset search preserves literal query and page context', async()
  assert.equal(assessmentAssetPageQuery(1,'',1,null),'?#create-assessment');
  assert.equal(valuationPageQuery(2,'asset-id','AI',3),'?page=2&asset=asset-id&asset_query=AI&asset_page=3#valuation-records');
 });
+
+test('model search links preserve selected model and encode query', async()=>{
+ const {modelListPageQuery,assessmentAssetPageQuery}=await import('../src/lib/valuations/pagination.ts');
+ assert.equal(modelListPageQuery(2,'모델 & 100%'),'?q=%EB%AA%A8%EB%8D%B8+%26+100%25&page=2#model-list');
+ assert.equal(modelListPageQuery(1,''),'?#model-list');
+ assert.equal(assessmentAssetPageQuery(2,'AI',3,'asset-id','model-id'),'?asset_query=AI&asset_page=2&page=3&asset=asset-id&model=model-id#create-assessment');
+ assert.equal(valuationPageQuery(2,'asset-id','AI',3,'model-id'),'?page=2&asset=asset-id&asset_query=AI&asset_page=3&model=model-id#valuation-records');
+});

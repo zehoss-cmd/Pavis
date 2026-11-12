@@ -48,6 +48,17 @@ select public.delete_empty_organization('a1000000-0000-4000-8000-000000000003');
 select set_config('test.org_recycle',id::text,true) from public.deleted_organizations() where name='Model-only organization';
 select public.restore_deleted_organization(current_setting('test.org_recycle')::uuid);
 do $$ declare n int; begin select count(*) into n from public.valuation_models where id=current_setting('test.restore_model')::uuid and name='Restorable' and created_by=auth.uid(); if n<>1 then raise exception 'organization restoration lost model'; end if; end $$;
+-- Test searching beyond 200 models, stable page boundaries and organization isolation.
+insert into public.valuation_models(organization_id,name,version,legal_weight,technical_weight,market_weight,commercial_weight)
+select 'a1000000-0000-4000-8000-000000000001','Search model', 'v'||n,25,25,25,25 from generate_series(1,201) n;
+do $$ declare n int; lookahead int; overlap_count int; begin
+ select count(*) into n from public.valuation_models where organization_id='a1000000-0000-4000-8000-000000000001' and name ilike '%search model%';
+ select count(*) into lookahead from (select id from public.valuation_models where organization_id='a1000000-0000-4000-8000-000000000001' and name ilike '%search model%' order by created_at desc,id desc limit 26 offset 0) p;
+ select count(*) into overlap_count from (select id from public.valuation_models where organization_id='a1000000-0000-4000-8000-000000000001' and name ilike '%search model%' order by created_at desc,id desc limit 25 offset 0) a join (select id from public.valuation_models where organization_id='a1000000-0000-4000-8000-000000000001' and name ilike '%search model%' order by created_at desc,id desc limit 25 offset 25) b using(id);
+ if n<>201 or lookahead<>26 or overlap_count<>0 then raise exception 'model search or page boundary failed'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
+do $$ declare n int; begin select count(*) into n from public.valuation_models where organization_id='a1000000-0000-4000-8000-000000000001' and name ilike '%search model%'; if n<>0 then raise exception 'model search leaks across organizations'; end if; end $$;
 set local role anon;
 do $$ begin begin perform * from public.valuation_models; raise exception 'anonymous read accepted'; exception when insufficient_privilege then null; end; end $$;
 rollback;
