@@ -235,3 +235,49 @@ for (const [label,button] of [['포트폴리오 생성 시험','포트폴리오 
   await expect(page).toHaveURL(/mock_portfolio_saved=1/);
  });
 }
+
+for (const motion of ['reduce','no-preference'] as const) {
+ test(`confirmation dialog supports keyboard and restores focus (${motion})`, async ({page}) => {
+  await page.emulateMedia({reducedMotion:motion});
+  await page.goto('/');
+  const trigger=page.getByRole('button',{name:'특허 삭제',exact:true});
+  const dialog=page.getByRole('dialog',{name:'특허 삭제 확인'});
+  const cancel=dialog.getByRole('button',{name:'취소'});
+  const confirm=dialog.getByRole('button',{name:'특허 삭제'});
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(dialog).toBeVisible();
+  await expect(cancel).toBeFocused();
+  await expect(dialog).toHaveAccessibleDescription('특허 견본을 삭제할까요?');
+  await page.keyboard.press('Tab');
+  await expect(confirm).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(cancel).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(page.getByLabel('제출 횟수')).toHaveText('0');
+  await page.keyboard.press('Enter');
+  await expect(cancel).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(page.getByLabel('제출 횟수')).toHaveText('0');
+  await expect.poll(()=>page.evaluate(()=>document.body.style.overflow)).toBe('');
+ });
+}
+
+test('keyboard focus remains visible on text fields and selectors', async ({page}) => {
+ await page.goto('/');
+ const section=page.getByRole('region',{name:'포트폴리오 생성 시험'});
+ const name=section.getByLabel('이름'), description=section.getByLabel('설명');
+ await name.focus();
+ await page.keyboard.press('Tab');
+ await expect(description).toBeFocused();
+ await expect(description).toHaveCSS('outline-style','solid');
+ await expect(description).toHaveCSS('outline-width','3px');
+ const select=page.getByRole('region',{name:'정성평가 초안 시험'}).getByLabel('대상 특허');
+ await select.focus();
+ await expect(select).toHaveCSS('outline-style','solid');
+ await expect(select).toHaveCSS('outline-width','3px');
+});
