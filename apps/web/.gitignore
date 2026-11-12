@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
+
+# Browser test artifacts
+/test-results/
+/playwright-report/
+/tests/browser/fixture/.next/
+/tests/browser/fixture/AGENTS.md

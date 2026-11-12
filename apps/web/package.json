@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:browser": "playwright test --config tests/browser/playwright.config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -22,6 +23,7 @@
     "yauzl": "3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

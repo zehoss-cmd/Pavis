@@ -20,3 +20,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm run build
+      - name: Install browser for UI tests
+        run: npx playwright install chromium
+      - name: Run isolated browser tests
+        run: npm run test:browser

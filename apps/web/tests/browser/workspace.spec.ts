@@ -1,0 +1,63 @@
+import { test, expect } from '@playwright/test';
+
+test('changing the selected file requires a new preview before import', async ({page}) => {
+ await page.goto('/');
+ const file=page.locator('input[type=file]');
+ await file.setInputFiles({name:'first.csv',mimeType:'text/csv',buffer:Buffer.from('title\nfirst')});
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('cell',{name:'first.csv'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toBeVisible();
+ await file.setInputFiles({name:'second.csv',mimeType:'text/csv',buffer:Buffer.from('title\nsecond')});
+ await expect(page.getByText('파일이 변경되었습니다.',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('cell',{name:'second.csv'})).toBeVisible();
+ await expect(page.getByRole('cell',{name:'first.csv'})).toHaveCount(0);
+ await page.getByRole('button',{name:'확인 후 등록'}).click();
+ await expect(page.getByText('1건의 특허를 등록했습니다.',{exact:false})).toBeVisible();
+});
+
+test('confirmation cancel and Escape do not submit; confirm submits once', async ({page}) => {
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ const trigger=page.getByRole('button',{name:'특허 삭제',exact:true});
+ const dialog=page.getByRole('dialog',{name:'특허 삭제 확인'});
+ const count=page.getByLabel('제출 횟수');
+ await trigger.click();
+ await expect(dialog).toBeVisible();
+ await dialog.getByRole('button',{name:'취소'}).click();
+ await expect(dialog).toBeHidden();
+ await expect(count).toHaveText('0');
+ await trigger.click();
+ await page.keyboard.press('Escape');
+ await expect(dialog).toBeHidden();
+ await expect(count).toHaveText('0');
+ await trigger.click();
+ await dialog.getByRole('button',{name:'특허 삭제'}).click();
+ await expect(count).toHaveText('1');
+});
+
+test('download reports pending, successful file and errors without saving HTML', async ({page}) => {
+ let status=200, type='text/csv; charset=utf-8';
+ await page.route('**/test-download',async route=>{
+  await new Promise(resolve=>setTimeout(resolve,250));
+  await route.fulfill({status,contentType:type,body:'sample'});
+ });
+ await page.goto('/');
+ const downloadSection=page.getByRole('region',{name:'다운로드'});
+ const button=downloadSection.getByRole('button',{name:'CSV 다운로드'});
+ const file=page.waitForEvent('download');
+ await button.click();
+ await expect(page.getByRole('button',{name:'파일 준비 중...'})).toBeDisabled();
+ expect((await file).suggestedFilename()).toBe('example.csv');
+ await expect(page.getByText('다운로드가 시작되었습니다.',{exact:false})).toBeVisible();
+ status=409;
+ await button.click();
+ await expect(downloadSection.getByRole('alert')).toContainText('평가 자료가 완전하지 않아');
+ status=401;
+ await button.click();
+ await expect(downloadSection.getByRole('alert')).toContainText('로그인 상태와 접근 권한');
+ status=200; type='text/html';
+ await button.click();
+ await expect(downloadSection.getByRole('alert')).toContainText('파일을 준비하지 못했습니다');
+});
