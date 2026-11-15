@@ -308,3 +308,29 @@ test('model registration preserves weights and text after failures', async ({pag
  await button.click();
  await expect(page).toHaveURL(/mock_model_saved=1/);
 });
+
+
+for (const [label,button] of [['법적 이력 추가 시험','이력 추가'],['법적 이력 수정 시험','변경 저장']] as const) {
+ test(`${label}: preserves legal event inputs after save errors`, async ({page}) => {
+  await page.goto('/');
+  const section=page.getByRole('region',{name:label});
+  await section.getByLabel('사건일').fill('2025-10-15');
+  await section.getByLabel('당시 상태').selectOption('granted');
+  await section.locator('[name="source"]').fill('확인한 공보');
+  await section.locator('[name="verified_date"]').fill('2025-11-01');
+  for(const [note,message] of [['입력 오류','입력한 날짜'],['저장 실패','이력을 저장하지 못했습니다'],['연결 오류','이력 목록에서 저장 여부'],['인증 오류','로그인 상태']] as const) {
+   await section.locator('[name="note"]').fill(note);
+   await section.getByRole('button',{name:button}).click();
+   await expect(section.getByRole('button',{name:'처리 중...'})).toBeDisabled();
+   await expect(section.getByRole('alert')).toContainText(message);
+   await expect(section.getByLabel('사건일')).toHaveValue('2025-10-15');
+   await expect(section.getByLabel('당시 상태')).toHaveValue('granted');
+   await expect(section.locator('[name="source"]')).toHaveValue('확인한 공보');
+   await expect(section.locator('[name="verified_date"]')).toHaveValue('2025-11-01');
+   await expect(section.locator('[name="note"]')).toHaveValue(note);
+  }
+  await section.locator('[name="note"]').fill('최종 메모');
+  await section.getByRole('button',{name:button}).click();
+  await expect(page).toHaveURL(/mock_legal_event_saved=1/);
+ });
+}

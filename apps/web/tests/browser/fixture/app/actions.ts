@@ -67,3 +67,13 @@ export async function mockModelSave(_previous:import('../../../../src/app/accoun
  if(form.get('version')==='save') return {error:'save'};
  return redirect('/?mock_model_saved=1');
 }
+
+/** Simulate legal event save outcomes without writing to any database. */
+export async function mockLegalEventSave(_previous:import('../../../../src/app/account/organizations/[id]/patents/[assetId]/events/form-state').LegalEventFormState,form:FormData):Promise<import('../../../../src/app/account/organizations/[id]/patents/[assetId]/events/form-state').LegalEventFormState> {
+ await new Promise(resolve=>setTimeout(resolve,300));
+ if(form.get('note')==='입력 오류') return {error:'invalid'};
+ if(form.get('note')==='저장 실패') return {error:'save'};
+ if(form.get('note')==='연결 오류') return {error:'network'};
+ if(form.get('note')==='인증 오류') return {error:'session'};
+ return redirect('/?mock_legal_event_saved=1');
+}
