@@ -334,3 +334,18 @@ for (const [label,button] of [['법적 이력 추가 시험','이력 추가'],['
   await expect(page).toHaveURL(/mock_legal_event_saved=1/);
  });
 }
+
+
+test('patent status overview exposes counts and navigable filters', async ({page}) => {
+ await page.goto('/');
+ const overview=page.getByRole('region',{name:'특허 현황 시험'});
+ await expect(overview.getByRole('heading',{name:'특허 현황'})).toBeVisible();
+ const registered=overview.getByRole('link',{name:/등록.*12/});
+ await expect(registered).toHaveAttribute('href','?status=granted');
+ await expect(registered).toHaveAttribute('aria-current','true');
+ await expect(overview.getByRole('link',{name:/전체.*120/})).toHaveAttribute('href','?');
+ await expect(overview.getByRole('link',{name:/출원 중.*28/})).toHaveAttribute('href','?status=pending');
+ await expect(overview).toContainText('입력된 법적 상태');
+ await registered.click();
+ await expect(page).toHaveURL(/\?status=granted/);
+});

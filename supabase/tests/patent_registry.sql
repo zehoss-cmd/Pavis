@@ -46,8 +46,17 @@ update public.patent_assets set family_id=null where family_id=current_setting('
 delete from public.patent_families where id=current_setting('test.family_a')::uuid;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
 do $$ declare n int; begin select count(*) into n from public.audit_logs where organization_id='61000000-0000-4000-8000-000000000001' and action in ('patent.asset.deleted','patent.family.deleted'); if n<>2 then raise exception 'delete audit missing'; end if; end $$;
+-- Status overview counts include every matching asset and respect viewer RLS.
+update public.patent_assets set legal_status='granted' where organization_id='61000000-0000-4000-8000-000000000001' and application_number in (select 'KR-'||n from generate_series(2,11) n);
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000003',true);
+do $$ declare total int; granted int; unknown_count int; begin
+ select count(*) into total from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001';
+ select count(*) into granted from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and legal_status='granted';
+ select count(*) into unknown_count from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and legal_status='unknown';
+ if total<>99 or granted<>10 or unknown_count<>89 then raise exception 'viewer status counts incorrect: %, %, %',total,granted,unknown_count; end if;
+end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
-do $$ declare n int; begin select count(*) into n from public.patent_assets; if n<>0 then raise exception 'cross-tenant read leaked'; end if; end $$;
+do $$ declare n int; begin select count(*) into n from public.patent_assets; if n<>0 then raise exception 'cross-tenant read leaked'; end if; select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and legal_status='granted'; if n<>0 then raise exception 'cross-tenant status count leaked'; end if; end $$;
 set local role anon;
 do $$ begin begin perform * from public.patent_assets; raise exception 'anonymous read allowed'; exception when insufficient_privilege then null; end; end $$;
 rollback;
