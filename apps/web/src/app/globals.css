@@ -361,3 +361,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 
 .patent-export { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin:18px 0; }
 .patent-export p { margin:0; color:#596a80; font-size:12px; line-height:1.5; }
+
+
+.patent-country-overview { margin: 24px 0; padding: 20px; border: 1px solid #dfe5ee; border-radius: 12px; background: #f8f9fb; }
+.workspace-content .auth-card .patent-country-overview h2 { margin: 0; font-size: 16px; }
+.patent-country-overview > p { margin: 8px 0 0; color: #596a80; font-size: 12px; line-height: 1.5; }
+.patent-country-overview .patent-country-list { display: grid; gap: 5px; margin: 14px 0 0; padding: 0; list-style: none; }
+.workspace-content .auth-card .patent-country-list li { padding: 0; }
+.workspace-content .auth-card .patent-country-list a { display: grid; grid-template-columns: 36px minmax(40px,1fr) auto; align-items: center; gap: 10px; min-height: 42px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; color: #34445b; text-decoration: none; }
+.workspace-content .auth-card .patent-country-list a:hover, .workspace-content .auth-card .patent-country-list a[aria-current="true"] { border-color: #bdcde7; background: #edf2fa; }
+.patent-country-label { font-size: 13px; font-weight: 700; }
+.patent-country-bar { display: block; height: 8px; overflow: hidden; border-radius: 8px; background: #e1e8f2; }
+.patent-country-bar span { display: block; height: 100%; min-width: 2px; border-radius: inherit; background: #3b5384; }
+.patent-country-count { font-size: 12px; white-space: nowrap; }
+@media(max-width:480px) { .patent-country-overview { padding: 16px; } }

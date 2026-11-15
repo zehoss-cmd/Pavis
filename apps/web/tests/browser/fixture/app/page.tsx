@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ImportFormView } from '../../../../src/app/account/organizations/[id]/patents/import/import-form';
 import { mockImport, mockPatentSave, mockQualitySave, mockDcfSave, mockPortfolioSave, mockModelSave, mockLegalEventSave } from './actions';
+import { PatentCountryOverview } from '../../../../src/app/account/organizations/[id]/patents/country-overview';
 import { PatentStatusOverview } from '../../../../src/app/account/organizations/[id]/patents/status-overview';
 import { AssetFormClient } from '../../../../src/app/account/organizations/[id]/patents/form-client';
 import { LegalEventForm } from '../../../../src/app/account/organizations/[id]/patents/[assetId]/events/event-form';
@@ -19,6 +20,7 @@ export default function Fixture() {
  return <main className="workspace"><div className="workspace-content"><div className="auth-page"><div className="auth-card">
   <h1>브라우저 테스트</h1>
   <section aria-label="특허 현황 시험"><PatentStatusOverview counts={{total:120,byStatus:{unknown:80,granted:12,pending:28}}} activeStatus="granted"/></section>
+  <section aria-label="국가별 현황 시험"><PatentCountryOverview countries={[{country:"KR",count:600},{country:"US",count:300},{country:"JP",count:100}]} sampleCount={1000} totalCount={1400} activeCountry="US"/></section>
   <section aria-label="가져오기"><ImportFormView org="test-only" handleAction={mockImport}/></section>
   <section aria-label="특허 등록 시험"><AssetFormClient org="test-only" families={[{id:'family',name:'견본 패밀리'}]} action={mockPatentSave}/></section>
   <section aria-label="특허 수정 시험"><AssetFormClient org="test-only" families={[{id:'family',name:'견본 패밀리'}]} action={mockPatentSave} asset={{id:'asset',family_id:'family',title:'기존 특허',jurisdiction:'KR',application_number:'OLD',publication_number:null,registration_number:null,rights_holder:null,inventors:null,filing_date:null,priority_date:null,legal_status:'pending',source:null,verified_date:null}}/></section>

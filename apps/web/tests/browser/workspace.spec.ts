@@ -352,3 +352,17 @@ test('patent status overview exposes counts and navigable filters', async ({page
  await registered.click();
  await expect(page).toHaveURL(/\?status=granted/);
 });
+
+
+test('country overview labels partial sample and links to country filter', async ({page}) => {
+ await page.goto('/');
+ const overview=page.getByRole('region',{name:'국가별 현황 시험'});
+ await expect(overview.getByRole('heading',{name:'국가별 특허 현황'})).toBeVisible();
+ await expect(overview).toContainText('전체 1,400건 중 최근 등록 1,000건 기준');
+ await expect(overview).toContainText('표시 범위 밖의 특허는');
+ const korea=overview.getByRole('link',{name:/KR.*600건.*60.0%/});
+ await expect(korea).toHaveAttribute('href','?country=KR');
+ await expect(overview.getByRole('link',{name:/US.*300건.*30.0%/})).toHaveAttribute('aria-current','true');
+ await korea.click();
+ await expect(page).toHaveURL(/\?country=KR/);
+});

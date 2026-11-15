@@ -55,6 +55,15 @@ do $$ declare total int; granted int; unknown_count int; begin
  select count(*) into unknown_count from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and legal_status='unknown';
  if total<>99 or granted<>10 or unknown_count<>89 then raise exception 'viewer status counts incorrect: %, %, %',total,granted,unknown_count; end if;
 end $$;
+-- Country overview uses organization-scoped rows and remains visible to viewers.
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
+insert into public.patent_assets(organization_id,title,jurisdiction) values ('61000000-0000-4000-8000-000000000001','US sample 1','US'),('61000000-0000-4000-8000-000000000001','US sample 2','US');
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000003',true);
+do $$ declare kr int; us int; begin
+ select count(*) into kr from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and jurisdiction='KR';
+ select count(*) into us from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and jurisdiction='US';
+ if kr<>99 or us<>2 then raise exception 'viewer country counts incorrect: %, %',kr,us; end if;
+end $$;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
 do $$ declare n int; begin select count(*) into n from public.patent_assets; if n<>0 then raise exception 'cross-tenant read leaked'; end if; select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and legal_status='granted'; if n<>0 then raise exception 'cross-tenant status count leaked'; end if; end $$;
 set local role anon;
