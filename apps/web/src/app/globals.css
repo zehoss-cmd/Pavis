@@ -358,3 +358,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .patent-status-tile strong { font-size: 20px; line-height: 1.2; }
 .patent-status-tile strong small { margin-left: 3px; font-size: 11px; font-weight: 500; }
 @media(max-width:480px) { .patent-status-overview { padding: 16px; } .patent-status-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .workspace-content .auth-card .patent-status-tile { min-height: 70px; padding: 10px; } }
+
+.patent-export { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin:18px 0; }
+.patent-export p { margin:0; color:#596a80; font-size:12px; line-height:1.5; }

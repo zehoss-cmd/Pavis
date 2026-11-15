@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 
-type DownloadState = 'idle' | 'pending' | 'started' | 'error' | 'session' | 'incomplete';
+type DownloadState = 'idle' | 'pending' | 'started' | 'error' | 'session' | 'incomplete' | 'too-many';
 const contentTypes = {
   csv: 'text/csv',
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -25,6 +25,7 @@ export function DownloadButton({ href, filename, format, children }: {
       const response = await fetch(href, { credentials: 'same-origin', cache: 'no-store' });
       const contentType = response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
       if (response.redirected || response.status === 401 || response.status === 403) { setState('session'); return; }
+      if (response.status === 413) { setState('too-many'); return; }
       if (response.status === 409) { setState('incomplete'); return; }
       if (!response.ok || contentType !== contentTypes[format]) { setState('error'); return; }
       const blob = await response.blob();
@@ -48,6 +49,7 @@ export function DownloadButton({ href, filename, format, children }: {
     <button type="button" onClick={download} disabled={state === 'pending'} aria-busy={state === 'pending'}>{state === 'pending' ? '파일 준비 중...' : children}</button>
     {state === 'started' && <span role="status">다운로드가 시작되었습니다. 브라우저의 다운로드 목록을 확인해 주세요.</span>}
     {state === 'session' && <span role="alert">로그인 상태와 접근 권한을 확인한 뒤 다시 시도해 주세요.</span>}
+    {state === 'too-many' && <span role="alert">결과가 너무 많습니다. 검색 조건을 좁힌 뒤 다시 시도해 주세요.</span>}
     {state === 'incomplete' && <span role="alert">평가 자료가 완전하지 않아 다운로드할 수 없습니다. 평가 내용을 확인해 주세요.</span>}
     {state === 'error' && <span role="alert">파일을 준비하지 못했습니다. 연결 상태와 접근 권한을 확인한 뒤 다시 시도해 주세요.</span>}
   </span>;

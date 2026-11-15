@@ -52,6 +52,9 @@ test('download reports pending, successful file and errors without saving HTML',
  await expect(page.getByRole('button',{name:'파일 준비 중...'})).toBeDisabled();
  expect((await file).suggestedFilename()).toBe('example.csv');
  await expect(page.getByText('다운로드가 시작되었습니다.',{exact:false})).toBeVisible();
+ status=413;
+ await button.click();
+ await expect(downloadSection.getByRole('alert')).toContainText('검색 조건을 좁힌');
  status=409;
  await button.click();
  await expect(downloadSection.getByRole('alert')).toContainText('평가 자료가 완전하지 않아');
