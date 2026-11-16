@@ -397,3 +397,13 @@ test('single organization remains selectable and creation starts from its button
  await input.fill('새 조직');
  await expect(page.getByRole('button',{name:'조직 만들기',exact:true})).toBeVisible();
 });
+
+test('business card submission rejects unsupported file types', async ({page}) => {
+ await page.goto('/business-card-preview');
+ const file=page.getByLabel('명함 이미지');
+ await file.setInputFiles({name:'test.txt',mimeType:'text/plain',buffer:Buffer.from('not a business card')});
+ await page.getByRole('button',{name:'인증 검토 요청'}).click();
+ await expect(page.locator('.business-card-form [role=alert]')).toContainText('JPG 또는 PNG');
+ await file.setInputFiles({name:'card.png',mimeType:'image/png',buffer:Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])});
+ await expect(page.locator('.business-card-form [role=alert]')).toHaveCount(0);
+});
