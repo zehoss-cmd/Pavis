@@ -1,7 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { parseFamilySearch } from '@/lib/patents/family-search';
+import { parseFamilySearch, savedFamilyContext } from '@/lib/patents/family-search';
 import type { AssetFormState } from './form-data';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const statuses = ['unknown','pending','granted','rejected','withdrawn','expired','lapsed','revoked'];
@@ -41,7 +41,9 @@ export async function saveAsset(_previous:AssetFormState,form:FormData):Promise<
   try { result=asset ? await supabase.from('patent_assets').update(values).eq('id',asset).eq('organization_id',org).select('id').maybeSingle() : await supabase.from('patent_assets').insert({...values,organization_id:org}).select('id').single(); }
   catch { return {error:'network'}; }
   if(result.error || !result.data) return {error:result.error?.code==='23505' ? 'duplicate' : result.status===0 ? 'network' : 'save'};
-  redirect(`${root(org)}/${result.data.id}?saved=1`);
+  const params=new URLSearchParams(read(form,'return_context'));
+  const context=asset ? savedFamilyContext({from_family:params.get('from_family'),family_q:params.get('family_q'),family_page:params.get('family_page'),return_family:params.get('return_family')}) : '';
+  redirect(`${root(org)}/${result.data.id}?saved=1${context ? '&'+context.slice(1) : ''}`);
 }
 export async function deleteAsset(form:FormData) {
   const org=read(form,'organization'), asset=read(form,'asset');

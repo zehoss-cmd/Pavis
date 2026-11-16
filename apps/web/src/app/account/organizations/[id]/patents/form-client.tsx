@@ -3,7 +3,7 @@ import { useActionState, useState, type ChangeEvent } from 'react';
 import { SubmitButton } from '@/components/submit-button';
 import { saveAsset } from './actions';
 import { statusLabels, type Asset, type Family, type AssetFormState } from './form-data';
-export function AssetFormClient({org,families,asset,action=saveAsset}:{org:string;families:Family[];asset?:Asset;action?:typeof saveAsset}) {
+export function AssetFormClient({org,families,asset,returnContext,action=saveAsset}:{org:string;families:Family[];asset?:Asset;returnContext?:string;action?:typeof saveAsset}) {
  const [state,formAction,pending]=useActionState(action,{error:null} as AssetFormState);
  const [values,setValues]=useState(()=>({
   title:asset?.title || '',jurisdiction:asset?.jurisdiction || '',family:asset?.family_id || '',
@@ -16,7 +16,7 @@ export function AssetFormClient({org,families,asset,action=saveAsset}:{org:strin
  // React may reset form controls after an action returns an error; keep the entered values.
  return <form action={formAction} className="patent-form" aria-busy={pending} onReset={event=>event.preventDefault()}>
   {state.error && <p className="form-message" role="alert">{messages[state.error]}</p>}
-  <input type="hidden" name="organization" value={org}/>{asset && <input type="hidden" name="asset" value={asset.id}/>}
+  <input type="hidden" name="organization" value={org}/>{returnContext && <input type="hidden" name="return_context" value={returnContext}/>}{asset && <input type="hidden" name="asset" value={asset.id}/>}
   <fieldset className="valuation-fieldset" disabled={pending}><legend>특허 기본 정보</legend><div className="dcf-field-grid">
    <label className="dcf-field-wide">발명의 명칭<input name="title" maxLength={300} value={values.title} onChange={change} required/></label>
    <label>관할 국가 코드<input name="jurisdiction" maxLength={2} minLength={2} pattern="[A-Za-z]{2}" placeholder="예: KR, US" value={values.jurisdiction} onChange={change} required/></label>
