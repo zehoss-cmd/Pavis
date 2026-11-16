@@ -378,7 +378,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 
 /* Shared PAVIS identity from the supplied brand artwork. */
 .login-brand .pavis-logo-image { width: 160px; height: 96px; object-fit: cover; display: block; }
-.workspace-brand .pavis-logo-image { width: 94px; height: 56px; object-fit: cover; display: block; }
+.workspace-brand .pavis-logo-image { width: 94px; height: 56px; object-fit: contain; display: block; }
 
 /* Account profile */
 .profile-page { max-width: 1160px; margin: 0 auto; padding: 36px 42px 72px; color: #20242c; }
@@ -411,3 +411,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .profile-notice { padding: 12px 15px; border-radius: 8px; background: #edf4ff; color: #2f548c; font-size: 13px; }
 .profile-notice-error { background: #fff0f0; color: #a44343; }
 @media (max-width: 760px) { .profile-page { padding: 24px 16px 48px; } .profile-layout { grid-template-columns: 1fr; } .profile-card { padding: 22px; } .profile-summary { text-align: left; display: grid; grid-template-columns: 62px minmax(0,1fr); column-gap: 16px; } .profile-avatar { grid-row: 1 / 5; width: 62px; height: 62px; margin: 0; font-size: 24px; } .profile-summary .profile-card-kicker { margin-bottom: 5px; } .profile-summary h2 { font-size: 17px; } .profile-summary .profile-email { margin: 6px 0; } .profile-badge { justify-self: start; } .profile-form button { width: 100%; } .profile-security a { width: 100%; } }
+
+.profile-form p + label { margin-top: 20px; }
+.profile-optional { color: #687589; font-size: 11px; font-weight: 400; }
+.organization-create { margin-top: 18px; }
+.organization-create summary { display: inline-flex; align-items: center; min-height: 40px; padding: 9px 14px; border: 1px solid #d8dfe9; border-radius: 8px; background: #fff; color: #354768; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.organization-create summary::-webkit-details-marker { display: none; }
+.organization-create summary:hover { background: #f4f6fa; }
+.organization-create form { display: grid; gap: 12px; max-width: 420px; padding: 16px 0; }
+.organization-create label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
+.organization-create input { min-height: 42px; padding: 10px; border: 1px solid #d8dbe1; border-radius: 8px; font: inherit; }
+.organization-create button { justify-self: start; min-height: 42px; padding: 10px 16px; border: 0; border-radius: 8px; background: #3b5384; color: #fff; font-weight: 700; cursor: pointer; }

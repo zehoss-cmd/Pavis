@@ -7,7 +7,7 @@ export default async function Profile({searchParams}:{searchParams:Promise<{erro
   const supabase=await createClient();
   const {data:{user},error}=await supabase.auth.getUser();
   if(error || !user) redirect('/login');
-  const {data:profile,error:readError}=await supabase.from('profiles').select('display_name').eq('user_id',user.id).maybeSingle();
+  const {data:profile,error:readError}=await supabase.from('profiles').select('display_name,phone,job_title').eq('user_id',user.id).maybeSingle();
   const flags=await searchParams;
-  return <ProfileView email={user.email} name={profile?.display_name || ''} verified={!!user.email_confirmed_at} saved={!!flags.saved} error={!!flags.error} readError={!!readError} action={saveProfile}/>;
+  return <ProfileView email={user.email} name={profile?.display_name || ''} phone={profile?.phone || ''} jobTitle={profile?.job_title || ''} verified={!!user.email_confirmed_at} saved={!!flags.saved} error={!!flags.error} readError={!!readError} action={saveProfile}/>;
 }

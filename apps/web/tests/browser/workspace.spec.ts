@@ -374,9 +374,26 @@ test('profile presents account details and editable name without horizontal over
  await expect(page.getByText('이메일 인증 완료')).toBeVisible();
  const name=page.getByLabel('이름',{exact:true});
  await expect(name).toHaveValue('이재호');
+ await expect(page.getByLabel('휴대전화 번호 선택')).toHaveValue('010-1234-5678');
+ await expect(page.getByLabel('직책 선택')).toHaveValue('IP 매니저');
  await name.fill('새 이름');
  await expect(name).toHaveValue('새 이름');
  await expect(page.getByRole('link',{name:'비밀번호 재설정'})).toHaveAttribute('href','/forgot-password');
  await expect(page.getByRole('link',{name:'내 조직 보기'})).toHaveAttribute('href','/account');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+
+test('single organization remains selectable and creation starts from its button', async ({page}) => {
+ await page.goto('/organization-preview');
+ const selector=page.getByLabel('현재 조직');
+ await expect(selector).toBeVisible();
+ await expect(selector.locator('option')).toHaveCount(2);
+ await expect(selector).toHaveValue('3dbe1094-356b-44dd-9ab1-774bf3f995ff');
+ const input=page.getByLabel('조직 이름');
+ await expect(input).toBeHidden();
+ await page.getByText('새 조직 만들기',{exact:true}).click();
+ await expect(input).toBeVisible();
+ await input.fill('새 조직');
+ await expect(page.getByRole('button',{name:'조직 만들기',exact:true})).toBeVisible();
 });

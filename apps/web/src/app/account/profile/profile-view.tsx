@@ -4,6 +4,8 @@ import { SubmitButton } from '@/components/submit-button';
 type Props = {
   email?: string;
   name: string;
+  phone?: string;
+  jobTitle?: string;
   verified: boolean;
   saved?: boolean;
   error?: boolean;
@@ -11,7 +13,7 @@ type Props = {
   action: (form: FormData) => void | Promise<void>;
 };
 
-export function ProfileView({ email, name, verified, saved, error, readError, action }: Props) {
+export function ProfileView({ email, name, phone = '', jobTitle = '', verified, saved, error, readError, action }: Props) {
   const initial = Array.from(name.trim() || email?.trim() || 'P')[0]?.toLocaleUpperCase() || 'P';
   return <main className="profile-page">
     <div className="profile-heading"><div><p className="profile-kicker">ACCOUNT SETTINGS</p><h1>내 프로필</h1><p>계정 정보와 보안 설정을 한곳에서 관리하세요.</p></div></div>
@@ -27,8 +29,8 @@ export function ProfileView({ email, name, verified, saved, error, readError, ac
       </section>
       <div className="profile-main">
         <section className="profile-card profile-settings" aria-labelledby="personal-info-title">
-          <div className="profile-section-heading"><div><p className="profile-card-kicker">PERSONAL INFORMATION</p><h2 id="personal-info-title">기본 정보</h2><p>프로필에 표시할 이름을 관리하세요.</p></div></div>
-          {!readError && <form action={action} className="profile-form"><label htmlFor="display-name">이름</label><input id="display-name" name="display_name" maxLength={60} defaultValue={name} autoComplete="name" required/><p>이름은 60자까지 입력할 수 있습니다.</p><div className="profile-form-actions"><SubmitButton pendingLabel="저장 중...">변경 저장</SubmitButton></div></form>}
+          <div className="profile-section-heading"><div><p className="profile-card-kicker">PERSONAL INFORMATION</p><h2 id="personal-info-title">기본 정보</h2><p>이름과 연락처, 직책을 관리하세요.</p></div></div>
+          {!readError && <form action={action} className="profile-form"><label htmlFor="display-name">이름</label><input id="display-name" name="display_name" maxLength={60} defaultValue={name} autoComplete="name" required/><p>이름은 60자까지 입력할 수 있습니다.</p><label htmlFor="phone">휴대전화 번호 <span className="profile-optional">선택</span></label><input id="phone" name="phone" type="tel" maxLength={30} defaultValue={phone} autoComplete="tel" placeholder="예: 010-1234-5678"/><p>연락처 정보이며 휴대전화 인증에는 사용되지 않습니다.</p><label htmlFor="job-title">직책 <span className="profile-optional">선택</span></label><input id="job-title" name="job_title" maxLength={100} defaultValue={jobTitle} autoComplete="organization-title" placeholder="예: IP 매니저"/><p>본인만 확인할 수 있습니다.</p><div className="profile-form-actions"><SubmitButton pendingLabel="저장 중...">변경 저장</SubmitButton></div></form>}
           <div className="profile-detail"><div><strong>이메일</strong><p>로그인과 계정 확인에 사용됩니다.</p></div><span>{email || '이메일 정보 없음'}</span></div>
         </section>
         <section className="profile-card profile-settings" aria-labelledby="account-security-title">
