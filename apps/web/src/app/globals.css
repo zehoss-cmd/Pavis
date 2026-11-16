@@ -429,3 +429,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .business-card-form p { margin: 0; color: #687589; font-size: 12px; line-height: 1.5; }
 .business-card-form button { min-height: 42px; padding: 10px 18px; border: 0; border-radius: 8px; background: #3b5384; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .business-card-form button:disabled { opacity: .65; cursor: wait; }
+
+.business-card-section { padding-top: 0; }
+.business-card-section .profile-card > p:not(.profile-card-kicker) { color: #687589; font-size: 13px; line-height: 1.6; }
+.profile-review-actions { display: flex; gap: 10px; }
