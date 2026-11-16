@@ -9,7 +9,7 @@ export default async function ForgotPassword({ searchParams }: { searchParams: P
   const { sent, error } = await searchParams;
   const { expiresAt, remainingSeconds } = await recoveryRequestTiming();
   return <main className="login-screen">
-    <Link href="/" className="login-brand" aria-label="PAVIS home"><Image src="/pavis-logo.png" alt="" width={160} height={96} className="pavis-logo-image" priority /></Link>
+    <Link href="/" className="login-brand" aria-label="PAVIS home"><Image src="/pavis-logo-white.png" alt="" width={160} height={96} className="pavis-logo-image" priority /></Link>
     <section className="login-panel recovery-panel" aria-labelledby="recovery-heading">
       <h1 id="recovery-heading">Reset your password</h1>
       <p className="recovery-intro">Request a verification code using your account email.</p>
