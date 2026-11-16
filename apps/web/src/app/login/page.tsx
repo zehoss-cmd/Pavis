@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { LoginForm } from './login-form';
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string; check?: string; password_reset?: string }> }) {
   const params = await searchParams;
   return <main className="login-screen">
-    <Link href="/" className="login-brand" aria-label="PAVIS 홈"><span aria-hidden="true">◈</span> PAVIS</Link>
+    <Link href="/" className="login-brand" aria-label="PAVIS 홈"><Image src="/pavis-logo.png" alt="" width={160} height={96} className="pavis-logo-image" priority /></Link>
     <section className="login-panel" aria-labelledby="login-heading">
       <h1 id="login-heading">Sign into your account</h1>
       {params.error && <p className="login-message" role="alert">이메일 또는 비밀번호를 확인해 주세요.</p>}

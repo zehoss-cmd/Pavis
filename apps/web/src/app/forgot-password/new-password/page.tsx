@@ -1,5 +1,6 @@
 import { SubmitButton } from '@/components/submit-button';
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { recoverySession } from '../recovery-session';
 import { resetPassword } from '../actions';
@@ -8,7 +9,7 @@ export default async function NewPassword({ searchParams }: { searchParams: Prom
   if (!await recoverySession()) redirect('/forgot-password?error=expired');
   const { error } = await searchParams;
   return <main className="login-screen">
-    <Link href="/" className="login-brand" aria-label="PAVIS home"><span aria-hidden="true">◈</span> PAVIS</Link>
+    <Link href="/" className="login-brand" aria-label="PAVIS home"><Image src="/pavis-logo.png" alt="" width={160} height={96} className="pavis-logo-image" priority /></Link>
     <section className="login-panel" aria-labelledby="new-password-heading">
       <h1 id="new-password-heading">Set a new password</h1>
       {error && <p className="login-message" role="alert">{error === 'update' ? 'Unable to change your password. Please try again.' : 'Use at least 8 characters, including a lowercase letter, an uppercase letter, and a number. Make sure both entries match.'}</p>}

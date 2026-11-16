@@ -1,5 +1,6 @@
 import { SubmitButton } from '@/components/submit-button';
 import Link from 'next/link';
+import Image from 'next/image';
 import { WorkspaceNavigation } from '@/components/workspace-navigation';
 import { logout } from '../auth/actions';
 import { createClient } from '@/lib/supabase/server';
@@ -7,5 +8,5 @@ import { createClient } from '@/lib/supabase/server';
 export default async function WorkspaceLayout({children}:{children:React.ReactNode}) {
   const supabase=await createClient();
   const {data:organizations,error}=await supabase.from('organizations').select('id,name').order('created_at').order('id');
-  return <div className="workspace"><a className="skip-to-content" href="#workspace-main">본문으로 바로가기</a><header className="workspace-header"><Link href="/account" className="workspace-brand"><span className="brand-mark" aria-hidden="true">◈</span><span>PAVIS</span></Link><div className="workspace-header-actions"><Link href="/account/profile">내 프로필</Link><form action={logout}><SubmitButton>로그아웃</SubmitButton></form></div></header><div className="workspace-body"><WorkspaceNavigation organizations={organizations||[]} loadError={!!error}/><div className="workspace-content" id="workspace-main" tabIndex={-1}>{children}</div></div></div>;
+  return <div className="workspace"><a className="skip-to-content" href="#workspace-main">본문으로 바로가기</a><header className="workspace-header"><Link href="/account" className="workspace-brand"><Image src="/pavis-logo.png" alt="PAVIS" width={94} height={56} className="pavis-logo-image" priority /></Link><div className="workspace-header-actions"><Link href="/account/profile">내 프로필</Link><form action={logout}><SubmitButton>로그아웃</SubmitButton></form></div></header><div className="workspace-body"><WorkspaceNavigation organizations={organizations||[]} loadError={!!error}/><div className="workspace-content" id="workspace-main" tabIndex={-1}>{children}</div></div></div>;
 }
