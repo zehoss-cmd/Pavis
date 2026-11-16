@@ -379,3 +379,35 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 /* Shared PAVIS identity from the supplied brand artwork. */
 .login-brand .pavis-logo-image { width: 160px; height: 96px; object-fit: cover; display: block; }
 .workspace-brand .pavis-logo-image { width: 94px; height: 56px; object-fit: cover; display: block; }
+
+/* Account profile */
+.profile-page { max-width: 1160px; margin: 0 auto; padding: 36px 42px 72px; color: #20242c; }
+.profile-heading { margin-bottom: 26px; }
+.profile-heading h1 { margin: 0; font-size: 25px; letter-spacing: -.04em; }
+.profile-heading > div > p:last-child, .profile-section-heading p:last-child { color: #687589; font-size: 13px; line-height: 1.6; margin: 8px 0 0; }
+.profile-kicker, .profile-card-kicker { margin: 0 0 10px; color: #486392; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.profile-layout { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.profile-main { display: grid; gap: 18px; min-width: 0; }
+.profile-card { min-width: 0; padding: 28px; background: #fff; border: 1px solid #e0e1e5; border-radius: 12px; }
+.profile-summary { text-align: center; }
+.profile-avatar { display: grid; place-items: center; width: 78px; height: 78px; margin: 0 auto 20px; border-radius: 50%; background: #e9eef8; color: #3b5384; font-size: 30px; font-weight: 700; }
+.profile-summary h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.profile-email { margin: 8px 0 14px; color: #687589; font-size: 13px; overflow-wrap: anywhere; }
+.profile-badge { display: inline-flex; padding: 6px 10px; border-radius: 20px; background: #f1f3f7; color: #526278; font-size: 11px; font-weight: 600; }
+.profile-section-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
+.profile-form { margin-top: 24px; }
+.profile-form label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+.profile-form input { width: 100%; max-width: 520px; min-height: 46px; padding: 10px 12px; border: 1px solid #d8dbe1; border-radius: 8px; font: inherit; color: #20242c; background: #fff; }
+.profile-form p, .profile-detail p { margin: 7px 0 0; color: #687589; font-size: 12px; line-height: 1.5; }
+.profile-form-actions { margin-top: 16px; }
+.profile-form button { min-height: 42px; padding: 10px 18px; border: 0; border-radius: 8px; background: #3b5384; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.profile-form button:disabled { opacity: .65; cursor: wait; }
+.profile-detail { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #eceef2; font-size: 13px; }
+.profile-detail > span { color: #435166; overflow-wrap: anywhere; }
+.profile-security { border-top: 0; padding-top: 0; }
+.profile-security a, .profile-back { display: inline-flex; justify-content: center; align-items: center; min-height: 42px; padding: 10px 14px; border: 1px solid #d8dfe9; border-radius: 8px; color: #354768; background: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
+.profile-back { justify-self: start; }
+.profile-security a:hover, .profile-back:hover { background: #f4f6fa; }
+.profile-notice { padding: 12px 15px; border-radius: 8px; background: #edf4ff; color: #2f548c; font-size: 13px; }
+.profile-notice-error { background: #fff0f0; color: #a44343; }
+@media (max-width: 760px) { .profile-page { padding: 24px 16px 48px; } .profile-layout { grid-template-columns: 1fr; } .profile-card { padding: 22px; } .profile-summary { text-align: left; display: grid; grid-template-columns: 62px minmax(0,1fr); column-gap: 16px; } .profile-avatar { grid-row: 1 / 5; width: 62px; height: 62px; margin: 0; font-size: 24px; } .profile-summary .profile-card-kicker { margin-bottom: 5px; } .profile-summary h2 { font-size: 17px; } .profile-summary .profile-email { margin: 6px 0; } .profile-badge { justify-self: start; } .profile-form button { width: 100%; } .profile-security a { width: 100%; } }

@@ -366,3 +366,17 @@ test('country overview labels partial sample and links to country filter', async
  await korea.click();
  await expect(page).toHaveURL(/\?country=KR/);
 });
+
+test('profile presents account details and editable name without horizontal overflow', async ({page}) => {
+ await page.goto('/profile-preview');
+ await expect(page.getByRole('heading',{name:'내 프로필'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'이재호'})).toBeVisible();
+ await expect(page.getByText('이메일 인증 완료')).toBeVisible();
+ const name=page.getByLabel('이름',{exact:true});
+ await expect(name).toHaveValue('이재호');
+ await name.fill('새 이름');
+ await expect(name).toHaveValue('새 이름');
+ await expect(page.getByRole('link',{name:'비밀번호 재설정'})).toHaveAttribute('href','/forgot-password');
+ await expect(page.getByRole('link',{name:'내 조직 보기'})).toHaveAttribute('href','/account');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
