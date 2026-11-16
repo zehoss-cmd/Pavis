@@ -5,7 +5,7 @@ import { LoadError } from '@/components/load-error';
 import { SubmitButton } from '@/components/submit-button';
 import { literalSearchPattern } from '@/lib/patents/search';
 import { patentAccess } from '@/lib/patents/access';
-import { familyMaxPage, familyPageQuery, familyPageSize, parseFamilySearch } from '@/lib/patents/family-search';
+import { familyAssetQuery, familyMaxPage, familyPageQuery, familyPageSize, parseFamilySearch } from '@/lib/patents/family-search';
 import { statusLabels } from '../../form';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -33,7 +33,7 @@ export default async function FamilyAssets({ params, searchParams }: {
     <p className="eyebrow">PATENT FAMILY</p><h1>{family?.name || '패밀리'}</h1><p>{organization.name} · 연결된 특허 · 이름순</p>
     <p>조직에서 직접 연결한 특허만 표시됩니다. 공식 특허 패밀리 정보는 별도 확인해 주세요.</p>
     {family && <form method="get" className="portfolio-asset-search"><label>특허명 검색<input type="search" name="q" maxLength={100} defaultValue={q} placeholder="특허명 입력" /></label><SubmitButton>검색</SubmitButton><Link href={`/account/organizations/${id}/patents/families/${familyId}`}>초기화</Link></form>}
-    {familyError || result?.error ? <LoadError message="패밀리와 연결 특허를 불러오지 못했습니다."/> : assets.length ? <ul className="asset-list">{assets.map(asset => <li key={asset.id}><Link href={`/account/organizations/${id}/patents/${asset.id}`}><strong>{asset.title}</strong><span>{asset.jurisdiction} · {asset.application_number || '출원번호 미입력'} · {statusLabels[asset.legal_status] || '미확인'}</span></Link></li>)}</ul> : <EmptyState title={page > 1 ? '이 페이지에 특허가 없습니다' : q ? '검색 결과가 없습니다' : '연결된 특허가 없습니다'} description={page > 1 ? '이전 페이지에서 특허를 확인해 주세요.' : q ? '특허명을 바꾸거나 검색을 초기화해 주세요.' : '특허 상세 화면의 정보 수정에서 패밀리를 연결할 수 있습니다.'} action={page > 1 ? { href: familyPageQuery(q, page - 1), label: '이전 페이지' } : q ? { href: `/account/organizations/${id}/patents/families/${familyId}`, label: '검색 초기화' } : { href: `/account/organizations/${id}/patents`, label: '특허 자산 보기' }}/>}
+    {familyError || result?.error ? <LoadError message="패밀리와 연결 특허를 불러오지 못했습니다."/> : assets.length ? <ul className="asset-list">{assets.map(asset => <li key={asset.id}><Link href={`/account/organizations/${id}/patents/${asset.id}${familyAssetQuery(q, page)}`}><strong>{asset.title}</strong><span>{asset.jurisdiction} · {asset.application_number || '출원번호 미입력'} · {statusLabels[asset.legal_status] || '미확인'}</span></Link></li>)}</ul> : <EmptyState title={page > 1 ? '이 페이지에 특허가 없습니다' : q ? '검색 결과가 없습니다' : '연결된 특허가 없습니다'} description={page > 1 ? '이전 페이지에서 특허를 확인해 주세요.' : q ? '특허명을 바꾸거나 검색을 초기화해 주세요.' : '특허 상세 화면의 정보 수정에서 패밀리를 연결할 수 있습니다.'} action={page > 1 ? { href: familyPageQuery(q, page - 1), label: '이전 페이지' } : q ? { href: `/account/organizations/${id}/patents/families/${familyId}`, label: '검색 초기화' } : { href: `/account/organizations/${id}/patents`, label: '특허 자산 보기' }}/>}
     {!familyError && !result?.error && (page > 1 || hasNext) && <nav className="patent-pagination" aria-label="연결 특허 목록 페이지">{page > 1 && <Link href={familyPageQuery(q, page - 1)}>이전</Link>}<span>{page}페이지</span>{hasNext && page < familyMaxPage && <Link href={familyPageQuery(q, page + 1)}>다음</Link>}{hasNext && page === familyMaxPage && <span>표시할 수 있는 페이지 한도에 도달했습니다.</span>}</nav>}
     <Link href={`/account/organizations/${id}/patents/families`}>패밀리 관리로</Link>
   </div></main>;

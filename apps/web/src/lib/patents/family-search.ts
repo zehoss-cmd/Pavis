@@ -12,3 +12,16 @@ export function familyPageQuery(q: string, page: number) {
   const result = params.toString();
   return result ? `?${result}` : '?';
 }
+
+// Keep return navigation local and encode user input as query parameters.
+export function familyAssetQuery(q: string, page: number) {
+  const params = new URLSearchParams({ from_family: '1' });
+  if (q) params.set('family_q', q);
+  if (page > 1) params.set('family_page', String(page));
+  return `?${params.toString()}`;
+}
+export function familyReturnQuery(input: { from_family?: unknown; family_q?: unknown; family_page?: unknown }) {
+  if (input.from_family !== '1') return '';
+  const { q, page } = parseFamilySearch({ q: input.family_q, page: input.family_page });
+  return familyPageQuery(q, page);
+}
