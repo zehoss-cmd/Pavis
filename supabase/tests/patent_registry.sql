@@ -17,6 +17,17 @@ select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001'
 insert into public.patent_families(organization_id,name) values('61000000-0000-4000-8000-000000000001','A family') returning set_config('test.family_a',id::text,true);
 insert into public.patent_assets(organization_id,family_id,title,jurisdiction,application_number,source,legal_status,publication_number,registration_number,rights_holder,inventors)
 select '61000000-0000-4000-8000-000000000001',current_setting('test.family_a')::uuid,'Sample patent '||n,'KR','KR-'||n,'manual','unknown','PUB-'||n,'REG-'||n,'Example holder','Inventor A, Inventor B' from generate_series(1,100) n;
+-- Family asset search must respect the family, case-insensitive title, and tenant RLS.
+do $$ declare n int; begin
+ select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and family_id=current_setting('test.family_a')::uuid and title ilike '%sample patent 1%';
+ if n<>12 then raise exception 'family title search returned % rows, expected 12',n; end if;
+end $$;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
+do $$ declare n int; begin
+ select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001' and family_id=current_setting('test.family_a')::uuid and title ilike '%sample patent 1%';
+ if n<>0 then raise exception 'family title search leaked across organizations'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000001',true);
 do $$ declare n int; begin
  select count(*) into n from public.patent_assets where organization_id='61000000-0000-4000-8000-000000000001'; if n<>100 then raise exception '100 assets not visible: %',n; end if;
  select count(*) into n from public.patent_assets where publication_number='PUB-1' and registration_number='REG-1' and rights_holder='Example holder' and inventors='Inventor A, Inventor B'; if n<>1 then raise exception 'patent identification fields not saved'; end if;
