@@ -11,6 +11,12 @@ insert into public.organization_members(organization_id,user_id,role,status) val
 set local role authenticated;
 select set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000001',true);
 insert into public.product_assets(organization_id,name,launch_year,revenue_year,revenue_amount,revenue_currency) values('91000000-0000-4000-8000-000000000001','Product',2020,2025,1234.50,'KRW') returning set_config('test.product',id::text,true);
+insert into public.product_assets(organization_id,name) values('91000000-0000-4000-8000-000000000001','No revenue');
+insert into public.product_assets(organization_id,name,revenue_year,revenue_amount,revenue_currency) values('91000000-0000-4000-8000-000000000001','Zero revenue',2025,0,'KRW');
+do $$ begin
+ if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_amount is null)<>1 then raise exception 'missing revenue count is wrong'; end if;
+ if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_amount is not null)<>2 then raise exception 'zero revenue should count as entered'; end if;
+end $$;
 do $$ begin begin insert into public.product_assets(organization_id,name,revenue_amount) values('91000000-0000-4000-8000-000000000001','Invalid',1); raise exception 'incomplete revenue accepted'; exception when check_violation then null; end; end $$;
 select set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000002',true);
 do $$ begin if exists(select 1 from public.product_assets where id=current_setting('test.product')::uuid) then raise exception 'cross organization read'; end if; end $$;
