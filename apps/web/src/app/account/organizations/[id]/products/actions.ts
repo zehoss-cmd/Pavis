@@ -35,3 +35,13 @@ export async function changeProductPatent(form:FormData) {
  if(result.error||!result.data)redirect(`${path}?link_error=${result.error?.code==='23505'?'duplicate':'save'}#product-patents`);
  redirect(`${path}?${operation==='add'?'linked':'unlinked'}=1#product-patents`);
 }
+export async function requestRevenueReview(form:FormData) {
+ const org=String(form.get('organization')||''),product=String(form.get('product')||''),evidence=String(form.get('evidence')||'').trim(),returnRevenue=revenueFilter(form.get('return_revenue'));
+ if(!uuid.test(org)||!uuid.test(product))redirect('/account');
+ const path=`${root(org)}/${product}`,context=returnRevenue?`&return_revenue=${returnRevenue}`:'';
+ if(!evidence||Array.from(evidence).length>1000)redirect(`${path}?review_error=invalid${context}#revenue-review`);
+ const supabase=await createClient(),{data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user)redirect('/login');
+ const {error}=await supabase.rpc('request_product_revenue_review',{p_org:org,p_product:product,p_evidence:evidence});
+ if(error)redirect(`${path}?review_error=${error.code==='23505'?'pending':'request'}${context}#revenue-review`);
+ redirect(`${path}?review_requested=1${context}#revenue-review`);
+}
