@@ -40,4 +40,6 @@ delete from public.product_assets where id=current_setting('test.review_product'
 select set_config('test.review_trash',id::text,true) from public.registry_recycle_list('b1000000-0000-4000-8000-000000000001') where record_id=current_setting('test.review_product')::uuid;
 select public.registry_recycle_restore('b1000000-0000-4000-8000-000000000001',current_setting('test.review_trash')::uuid);
 do $$ begin if (select revenue_revision from public.product_assets where id=current_setting('test.review_product')::uuid)<>3 then raise exception 'restore lost revision';end if;if (select count(*) from public.product_revenue_reviews where product_id=current_setting('test.review_product')::uuid)<>2 then raise exception 'restore lost review history';end if;end $$;
+update public.product_assets set name='Renamed product' where id=current_setting('test.review_product')::uuid;
+do $$ begin if (select revenue_revision from public.product_assets where id=current_setting('test.review_product')::uuid)<>4 then raise exception 'name change did not invalidate review';end if;end $$;
 rollback;

@@ -43,7 +43,7 @@ create policy product_revenue_reviews_read on public.product_revenue_reviews for
 -- A monotonic revision invalidates reviews even if amounts are later changed back.
 create function private.product_revenue_revision() returns trigger language plpgsql security definer set search_path='' as $$
 begin
- if new.revenue_year is distinct from old.revenue_year or new.revenue_amount is distinct from old.revenue_amount or new.revenue_currency is distinct from old.revenue_currency then
+ if new.name is distinct from old.name or new.revenue_year is distinct from old.revenue_year or new.revenue_amount is distinct from old.revenue_amount or new.revenue_currency is distinct from old.revenue_currency then
   new.revenue_revision:=old.revenue_revision+1;
   update public.product_revenue_reviews set status='superseded' where organization_id=old.organization_id and product_id=old.id and status='pending';
  end if;
