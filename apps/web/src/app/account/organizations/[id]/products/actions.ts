@@ -63,6 +63,7 @@ export async function savePatentContribution(_previous:import('@/domain/products
 export async function bulkConnectPatents(_previous:import('@/domain/products/bulk-patents').BulkPatentState,form:FormData):Promise<import('@/domain/products/bulk-patents').BulkPatentState> {
  const {parsePatentSelection}=await import('@/domain/products/bulk-patents');
  const {parsePortfolioPage,parsePortfolioAssetQuery}=await import('@/lib/portfolios/pagination');
+ const {parseProductPatentSearchField}=await import('@/domain/products/patent-search');
  const org=String(form.get('organization')||''),product=String(form.get('product')||''),patents=parsePatentSelection(form.getAll('patent'));
  if(!uuid.test(org)||!uuid.test(product)||!patents)return {error:'invalid'};
  let supabase:Awaited<ReturnType<typeof createClient>>;
@@ -71,6 +72,6 @@ export async function bulkConnectPatents(_previous:import('@/domain/products/bul
  try {result=await supabase.from('product_patent_links').insert(patents.map(patent=>({organization_id:org,product_id:product,patent_id:patent})));}catch{return {error:'network'};}
  if(result.error)return {error:result.status===0?'network':result.error.code==='23505'?'duplicate':'save'};
  const params=new URLSearchParams({linked:String(patents.length)}),q=parsePortfolioAssetQuery(form.get('asset_query')),choicePage=parsePortfolioPage(form.get('choice_page')),linkedPage=parsePortfolioPage(form.get('linked_page'));
- if(q)params.set('asset_query',q);if(choicePage>1)params.set('choice_page',String(choicePage));if(linkedPage>1)params.set('linked_page',String(linkedPage));
+ if(q){params.set('asset_query',q);const field=parseProductPatentSearchField(form.get('asset_field'));if(field!=='title')params.set('asset_field',field);}if(choicePage>1)params.set('choice_page',String(choicePage));if(linkedPage>1)params.set('linked_page',String(linkedPage));
  redirect(`${root(org)}/${product}?${params.toString()}#product-patents`);
 }

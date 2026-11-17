@@ -10,7 +10,7 @@ import { ProductPatentLinks } from './patent-links';
 import { RevenueReview } from './revenue-review';
 import { revenueFilter } from '@/domain/products/revenue-filter';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export default async function ProductDetail({params,searchParams}:{params:Promise<{id:string;productId:string}>;searchParams:Promise<{saved?:string;error?:string;review_requested?:string;review_error?:string;return_revenue?:string;asset_query?:string|string[];choice_page?:string|string[];linked_page?:string|string[];linked?:string;unlinked?:string;link_error?:string}>}) {
+export default async function ProductDetail({params,searchParams}:{params:Promise<{id:string;productId:string}>;searchParams:Promise<{saved?:string;error?:string;review_requested?:string;review_error?:string;return_revenue?:string;asset_field?:string|string[];asset_query?:string|string[];choice_page?:string|string[];linked_page?:string|string[];linked?:string;unlinked?:string;link_error?:string}>}) {
  const {id,productId}=await params;if(!uuid.test(productId))notFound();
  const {supabase,organization,canWrite}=await patentAccess(id),flags=await searchParams;
  const {data,error}=await supabase.from('product_assets').select('id,name,launch_year,revenue_year,revenue_amount,revenue_currency,revenue_revision').eq('organization_id',id).eq('id',productId).maybeSingle();

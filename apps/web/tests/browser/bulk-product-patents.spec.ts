@@ -14,4 +14,5 @@ test('bulk selection survives errors and retries with the remaining choices',asy
  await submit.click();
  await expect(page).toHaveURL(/count=2/);
  await expect(page).toHaveURL(/page=2/);
+ await expect(page).toHaveURL(/field=application_number/);
 });
