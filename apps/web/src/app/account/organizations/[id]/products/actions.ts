@@ -1,0 +1,26 @@
+'use server';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { parseProduct, type ProductFormState } from '@/domain/products/validation';
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const root=(org:string)=>`/account/organizations/${org}/products`;
+export async function saveProduct(_state:ProductFormState,form:FormData):Promise<ProductFormState> {
+ const org=String(form.get('organization')||''),id=String(form.get('product')||'');
+ if(!uuid.test(org)||(id&&!uuid.test(id))) redirect('/account');
+ const values=parseProduct(form); if(!values) return {error:'invalid'};
+ let supabase:Awaited<ReturnType<typeof createClient>>;
+ try {supabase=await createClient();const {data:{user},error}=await supabase.auth.getUser();if(error||!user)return {error:'session'};} catch{return {error:'network'};}
+ let result;
+ try {result=id?await supabase.from('product_assets').update(values).eq('organization_id',org).eq('id',id).select('id').maybeSingle():await supabase.from('product_assets').insert({...values,organization_id:org}).select('id').single();} catch{return {error:'network'};}
+ if(result.error||!result.data)return {error:'save'};
+ redirect(`${root(org)}/${result.data.id}?saved=1`);
+}
+export async function deleteProduct(form:FormData) {
+ const org=String(form.get('organization')||''),id=String(form.get('product')||'');
+ if(!uuid.test(org)||!uuid.test(id)) redirect('/account');
+ const supabase=await createClient(),{data:{user},error:authError}=await supabase.auth.getUser();
+ if(authError||!user) redirect('/login');
+ const {data,error}=await supabase.from('product_assets').delete().eq('organization_id',org).eq('id',id).select('id').maybeSingle();
+ if(error||!data)redirect(`${root(org)}/${id}?error=delete`);
+ redirect(`${root(org)}?deleted=1`);
+}
