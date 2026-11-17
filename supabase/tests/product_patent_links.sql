@@ -42,6 +42,23 @@ do $$ begin if not exists(select 1 from public.product_patent_links where id=cur
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000002',true);
 do $$ begin if exists(select 1 from public.product_patent_links where id=current_setting('test.link')::uuid) then raise exception 'cross organization read';end if;update public.product_patent_links set contribution_rate=70 where id=current_setting('test.link')::uuid;if found then raise exception 'cross organization update';end if;end $$;
 select set_config('request.jwt.claim.sub','a0000000-0000-4000-8000-000000000001',true);
+insert into public.patent_assets(organization_id,title,jurisdiction) values('a1000000-0000-4000-8000-000000000001','Bulk candidate','KR') returning set_config('test.bulkpatent',id::text,true);
+do $$ begin
+ begin
+  insert into public.product_patent_links(organization_id,product_id,patent_id) values
+  ('a1000000-0000-4000-8000-000000000001',current_setting('test.product')::uuid,current_setting('test.bulkpatent')::uuid),
+  ('a1000000-0000-4000-8000-000000000001',current_setting('test.product')::uuid,current_setting('test.otherpatent')::uuid);
+  raise exception 'bulk cross organization accepted';
+ exception when foreign_key_violation then null; end;
+ if exists(select 1 from public.product_patent_links where patent_id=current_setting('test.bulkpatent')::uuid) then raise exception 'cross organization batch partially inserted'; end if;
+ begin
+  insert into public.product_patent_links(organization_id,product_id,patent_id) values
+  ('a1000000-0000-4000-8000-000000000001',current_setting('test.product')::uuid,current_setting('test.bulkpatent')::uuid),
+  ('a1000000-0000-4000-8000-000000000001',current_setting('test.product')::uuid,current_setting('test.patent')::uuid);
+  raise exception 'bulk duplicate accepted';
+ exception when unique_violation then null; end;
+ if exists(select 1 from public.product_patent_links where patent_id=current_setting('test.bulkpatent')::uuid) then raise exception 'duplicate batch partially inserted'; end if;
+end $$;
 delete from public.product_patent_links where id in(current_setting('test.link')::uuid,current_setting('test.secondlink')::uuid);
 do $$ begin if not exists(select 1 from public.product_assets where id=current_setting('test.product')::uuid) or not exists(select 1 from public.patent_assets where id=current_setting('test.patent')::uuid) then raise exception 'unlink deleted asset';end if;end $$;
 rollback;

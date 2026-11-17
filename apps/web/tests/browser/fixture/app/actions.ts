@@ -107,3 +107,10 @@ export async function mockContributionSave(_previous:import('../../../../src/dom
  if(value==='12.34')return {error:'network',saved:null};
  return {error:null,saved:value};
 }
+
+export async function mockBulkPatent(_previous:import('../../../../src/domain/products/bulk-patents').BulkPatentState,form:FormData):Promise<import('../../../../src/domain/products/bulk-patents').BulkPatentState> {
+ await new Promise(resolve=>setTimeout(resolve,150));
+ const patents=form.getAll('patent');
+ if(patents.includes('aaaaaaaa-aaaa-4aaa-8aaa-000000000001'))return {error:'duplicate'};
+ return redirect(`/bulk-product-patents?${new URLSearchParams({count:String(patents.length),query:String(form.get('asset_query')),page:String(form.get('choice_page'))})}`);
+}

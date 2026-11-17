@@ -60,3 +60,17 @@ export async function savePatentContribution(_previous:import('@/domain/products
  const {revalidatePath}=await import('next/cache');revalidatePath(`${root(org)}/${product}`);revalidatePath(`/account/organizations/${org}/patents/${patent}`);
  return {error:null,saved:amount??''};
 }
+export async function bulkConnectPatents(_previous:import('@/domain/products/bulk-patents').BulkPatentState,form:FormData):Promise<import('@/domain/products/bulk-patents').BulkPatentState> {
+ const {parsePatentSelection}=await import('@/domain/products/bulk-patents');
+ const {parsePortfolioPage,parsePortfolioAssetQuery}=await import('@/lib/portfolios/pagination');
+ const org=String(form.get('organization')||''),product=String(form.get('product')||''),patents=parsePatentSelection(form.getAll('patent'));
+ if(!uuid.test(org)||!uuid.test(product)||!patents)return {error:'invalid'};
+ let supabase:Awaited<ReturnType<typeof createClient>>;
+ try {supabase=await createClient();const {data:{user},error}=await supabase.auth.getUser();if(error||!user)return {error:'session'};}catch{return {error:'network'};}
+ let result;
+ try {result=await supabase.from('product_patent_links').insert(patents.map(patent=>({organization_id:org,product_id:product,patent_id:patent})));}catch{return {error:'network'};}
+ if(result.error)return {error:result.status===0?'network':result.error.code==='23505'?'duplicate':'save'};
+ const params=new URLSearchParams({linked:String(patents.length)}),q=parsePortfolioAssetQuery(form.get('asset_query')),choicePage=parsePortfolioPage(form.get('choice_page')),linkedPage=parsePortfolioPage(form.get('linked_page'));
+ if(q)params.set('asset_query',q);if(choicePage>1)params.set('choice_page',String(choicePage));if(linkedPage>1)params.set('linked_page',String(linkedPage));
+ redirect(`${root(org)}/${product}?${params.toString()}#product-patents`);
+}
