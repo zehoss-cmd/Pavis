@@ -13,9 +13,13 @@ select set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000001'
 insert into public.product_assets(organization_id,name,launch_year,revenue_year,revenue_amount,revenue_currency) values('91000000-0000-4000-8000-000000000001','Product',2020,2025,1234.50,'KRW') returning set_config('test.product',id::text,true);
 insert into public.product_assets(organization_id,name) values('91000000-0000-4000-8000-000000000001','No revenue');
 insert into public.product_assets(organization_id,name,revenue_year,revenue_amount,revenue_currency) values('91000000-0000-4000-8000-000000000001','Zero revenue',2025,0,'KRW');
+insert into public.product_assets(organization_id,name,revenue_year,revenue_amount,revenue_currency) values('91000000-0000-4000-8000-000000000001','Old revenue',2024,0,'KRW');
+do $$ begin
+ if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_year < 2025)<>1 then raise exception 'outdated revenue filter is wrong'; end if;
+end $$;
 do $$ begin
  if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_amount is null)<>1 then raise exception 'missing revenue count is wrong'; end if;
- if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_amount is not null)<>2 then raise exception 'zero revenue should count as entered'; end if;
+ if (select count(*) from public.product_assets where organization_id='91000000-0000-4000-8000-000000000001' and revenue_amount is not null)<>3 then raise exception 'zero revenue should count as entered'; end if;
 end $$;
 do $$ begin begin insert into public.product_assets(organization_id,name,revenue_amount) values('91000000-0000-4000-8000-000000000001','Invalid',1); raise exception 'incomplete revenue accepted'; exception when check_violation then null; end; end $$;
 select set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000002',true);
