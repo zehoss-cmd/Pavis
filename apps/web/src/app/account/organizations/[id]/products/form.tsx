@@ -17,7 +17,7 @@ export function ProductForm({org,product,previousYear,returnRevenue='' }:{org:st
    <label>매출 기준연도<input name="revenue_year" type="number" min="1800" max="2100" step="1" value={values.revenue_year} onChange={change}/></label>
    <label>해당 연도 매출액<input name="revenue_amount" type="number" min="0" max="999999999999.99" step="0.01" inputMode="decimal" value={values.revenue_amount} onChange={change} placeholder="금액 입력"/></label>
    <label>통화<select name="revenue_currency" value={values.revenue_currency} onChange={change}><option value="KRW">KRW · 원</option><option value="USD">USD · 달러</option><option value="EUR">EUR · 유로</option><option value="JPY">JPY · 엔</option></select></label>
-  </div><p>매출 기준연도는 전년도로 기본 설정됩니다. 매출액은 선택 입력이며 기준연도와 통화가 함께 저장됩니다.</p></fieldset>
+  </div><p>매출 기준연도는 전년도로 기본 설정됩니다. 매출액은 선택 입력이며 기준연도와 통화가 함께 저장됩니다. {product && '현재는 한 개 연도의 매출만 저장되므로 수정하면 기존 매출 정보를 대체합니다.'}</p></fieldset>
   <SubmitButton>{product?'변경 저장':'제품 등록'}</SubmitButton>
  </form>;
 }
