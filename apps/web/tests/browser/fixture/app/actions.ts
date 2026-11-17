@@ -100,3 +100,10 @@ export async function mockProductDelete(form:FormData):Promise<void> {
  const params=new URLSearchParams({product:String(form.get('product')||''),q:String(form.get('return_query')||''),revenue:String(form.get('return_revenue')||''),page:String(form.get('return_page')||'')});
  redirect(`/product-delete?${params.toString()}`);
 }
+
+/** Isolated contribution editing without a database. */
+export async function mockContributionSave(_previous:import('../../../../src/domain/products/patent-contribution').ContributionFormState,form:FormData):Promise<import('../../../../src/domain/products/patent-contribution').ContributionFormState> {
+ await new Promise(resolve=>setTimeout(resolve,150));const value=String(form.get('contribution_rate')||'');
+ if(value==='12.34')return {error:'network',saved:null};
+ return {error:null,saved:value};
+}

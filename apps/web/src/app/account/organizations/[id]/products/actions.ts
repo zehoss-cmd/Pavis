@@ -48,3 +48,15 @@ export async function requestRevenueReview(_previous:RevenueReviewFormState,form
  if(result.error)return {error:result.status===0?'network':classifyReviewError(result.error.code)};
  redirect(`${path}?review_requested=1${context}#revenue-review`);
 }
+export async function savePatentContribution(_previous:import('@/domain/products/patent-contribution').ContributionFormState,form:FormData):Promise<import('@/domain/products/patent-contribution').ContributionFormState> {
+ const {parseContribution}=await import('@/domain/products/patent-contribution');
+ const org=String(form.get('organization')||''),product=String(form.get('product')||''),patent=String(form.get('patent')||''),amount=parseContribution(form.get('contribution_rate'));
+ if(!uuid.test(org)||!uuid.test(product)||!uuid.test(patent)||amount===undefined)return {error:'invalid',saved:null};
+ let supabase:Awaited<ReturnType<typeof createClient>>;
+ try {supabase=await createClient();const {data:{user},error}=await supabase.auth.getUser();if(error||!user)return {error:'session',saved:null};}catch{return {error:'network',saved:null};}
+ let result;
+ try {result=await supabase.from('product_patent_links').update({contribution_rate:amount}).eq('organization_id',org).eq('product_id',product).eq('patent_id',patent).select('id').maybeSingle();}catch{return {error:'network',saved:null};}
+ if(result.error||!result.data)return {error:result.status===0?'network':'save',saved:null};
+ const {revalidatePath}=await import('next/cache');revalidatePath(`${root(org)}/${product}`);revalidatePath(`/account/organizations/${org}/patents/${patent}`);
+ return {error:null,saved:amount??''};
+}
