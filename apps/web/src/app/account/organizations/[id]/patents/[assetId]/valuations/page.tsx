@@ -2,7 +2,7 @@ import { DownloadButton } from '@/components/download-button';
 import { LoadError } from '@/components/load-error';
 import { EmptyState } from '@/components/empty-state';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';
 import { parseValuationStatus, parseValuationDateRange } from '@/lib/valuations/history-filter';

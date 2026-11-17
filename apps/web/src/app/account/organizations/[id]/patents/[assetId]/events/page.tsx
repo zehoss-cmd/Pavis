@@ -1,6 +1,6 @@
 import { parseEventPage, eventPageQuery, eventPageSize, eventMaxPage } from '@/lib/patents/event-pagination';
 import { LoadError } from '@/components/load-error';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import { patentAccess } from '@/lib/patents/access';

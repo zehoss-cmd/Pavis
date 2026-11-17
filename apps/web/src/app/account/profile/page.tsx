@@ -5,7 +5,7 @@ import { ProfileView } from './profile-view';
 import { BusinessCardForm } from './business-card-form';
 import { retryBusinessCardNotice, submitBusinessCard } from './business-card-actions';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 
 export default async function Profile({searchParams}:{searchParams:Promise<{error?:string;saved?:string;card_error?:string;card_notice?:string}>}) {
   const supabase=await createClient();

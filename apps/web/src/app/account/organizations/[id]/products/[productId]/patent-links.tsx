@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { SubmitButton } from '@/components/submit-button';
 import { LoadError } from '@/components/load-error';
 import { patentAccess } from '@/lib/patents/access';

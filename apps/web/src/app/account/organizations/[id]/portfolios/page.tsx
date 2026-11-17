@@ -1,7 +1,7 @@
 import { LoadError } from '@/components/load-error';
 import { EmptyState } from '@/components/empty-state';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { patentAccess } from '@/lib/patents/access';
 import { literalSearchPattern } from '@/lib/patents/search';
 import { parsePortfolioPage, parsePortfolioAssetQuery, portfolioListPageQuery, portfolioMaxPage, portfolioPageSize } from '@/lib/portfolios/pagination';

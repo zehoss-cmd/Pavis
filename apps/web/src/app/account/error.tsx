@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 
 export default function WorkspaceError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return <main className="workspace-loading workspace-error" role="alert">

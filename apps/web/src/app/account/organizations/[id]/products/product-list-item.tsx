@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import type { Product } from '@/domain/products/validation';
 import type { RevenueFilter } from '@/domain/products/revenue-filter';

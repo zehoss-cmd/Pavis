@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { LoadError } from '@/components/load-error';
 import { EmptyState } from '@/components/empty-state';

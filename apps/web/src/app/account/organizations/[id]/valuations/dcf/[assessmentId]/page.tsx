@@ -1,7 +1,7 @@
 import { DraftForm } from '../../draft-form';
 import { DownloadButton } from '@/components/download-button';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';
 import { ConfirmSubmit } from '@/components/confirm-submit';

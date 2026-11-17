@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import { deleteAsset } from '../actions';
 import { notFound } from 'next/navigation';

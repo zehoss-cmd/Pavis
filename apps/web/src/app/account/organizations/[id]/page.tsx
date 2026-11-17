@@ -1,5 +1,5 @@
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';

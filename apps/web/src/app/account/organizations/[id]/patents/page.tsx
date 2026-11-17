@@ -2,7 +2,7 @@ import { LoadError } from '@/components/load-error';
 import { EmptyState } from '@/components/empty-state';
 import { DownloadButton } from '@/components/download-button';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { patentAccess } from '@/lib/patents/access';
 import { literalSearchPattern, maxPage, pageSize, parsePatentSearch, patentPageQuery, searchFields, type SearchParams } from '@/lib/patents/search';
 import { createFamily } from './actions';

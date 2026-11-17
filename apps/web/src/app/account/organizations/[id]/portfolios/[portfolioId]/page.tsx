@@ -1,7 +1,7 @@
 import { EmptyState } from '@/components/empty-state';
 import { LoadError } from '@/components/load-error';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';

@@ -1,7 +1,7 @@
 import { parseValuationPage, valuationPageSize, valuationMaxPage, parseAssessmentAssetQuery, comparisonAssetPageQuery } from '@/lib/valuations/pagination';
 import { literalSearchPattern } from '@/lib/patents/search';
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';
 import { requestedAssetId, selectedRequestedAsset } from '@/lib/patents/requested-asset';

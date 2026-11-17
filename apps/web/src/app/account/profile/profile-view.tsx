@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { SubmitButton } from '@/components/submit-button';
 
 type Props = {

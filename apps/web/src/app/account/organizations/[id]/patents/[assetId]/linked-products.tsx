@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { LoadError } from '@/components/load-error';
 import { patentAccess } from '@/lib/patents/access';
 import { linkedProductPageSize, linkedProductMaxPage, productPage, productPageUrl, type LinkedProductContext } from '@/lib/patents/linked-products';

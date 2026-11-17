@@ -1,5 +1,5 @@
 import { SubmitButton } from '@/components/submit-button';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import Image from 'next/image';
 import { recoveryRequestTiming } from './recovery-request-server';
 import { RecoveryConfirm } from './recovery-confirm';

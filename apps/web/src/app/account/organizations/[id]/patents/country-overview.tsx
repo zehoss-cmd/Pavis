@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import type { CountryCount } from '@/lib/patents/country-overview';
 
 export function PatentCountryOverview({countries,sampleCount,totalCount,activeCountry}:{countries:CountryCount[];sampleCount:number;totalCount:number;activeCountry:string}) {

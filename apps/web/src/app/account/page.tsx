@@ -1,6 +1,6 @@
 import { SubmitButton } from '@/components/submit-button';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { createClient } from '@/lib/supabase/server';
 import { createOrganization, acceptInvitation, restoreOrganization } from './actions';
 import { OrganizationCreate } from './organization-create';

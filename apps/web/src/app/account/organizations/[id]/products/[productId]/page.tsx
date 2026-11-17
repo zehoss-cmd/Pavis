@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { notFound } from 'next/navigation';
 import { patentAccess } from '@/lib/patents/access';
 import { ConfirmSubmit } from '@/components/confirm-submit';

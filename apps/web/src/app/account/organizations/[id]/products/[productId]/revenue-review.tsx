@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation-link';
 import { RevenueReviewForm } from '@/components/revenue-review-form';
 import { LoadError } from '@/components/load-error';
 import { patentAccess } from '@/lib/patents/access';
