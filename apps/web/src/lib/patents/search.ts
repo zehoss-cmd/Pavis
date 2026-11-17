@@ -15,10 +15,11 @@ export function parsePatentSearch(params: SearchParams) {
   const q = typeof params.q === 'string' ? params.q.trim().slice(0,100) : '';
   const country = typeof params.country === 'string' && /^[a-z]{2}$/i.test(params.country.trim()) ? params.country.trim().toUpperCase() : '';
   const status = typeof params.status === 'string' && patentStatuses.some(value => value === params.status) ? params.status : '';
+  const family = typeof params.family === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.family) ? params.family : '';
   const sort = params.sort === 'oldest' || params.sort === 'title' ? params.sort : 'newest';
   const value = typeof params.page === 'string' && /^[1-9]\d{0,3}$/.test(params.page) ? Number(params.page) : 1;
   const page = Math.min(value, maxPage);
-  return { field, q, country, status, sort, page };
+  return { field, q, country, status, family, sort, page };
 }
 export function literalSearchPattern(value: string) { return `%${value.replace(/[\\%_]/g,'\\$&')}%`; }
 export function patentPageQuery(search: ReturnType<typeof parsePatentSearch>, page: number) {
@@ -26,6 +27,7 @@ export function patentPageQuery(search: ReturnType<typeof parsePatentSearch>, pa
   if (search.q) { params.set('field', search.field); params.set('q', search.q); }
   if (search.country) params.set('country', search.country);
   if (search.status) params.set('status', search.status);
+  if (search.family) params.set('family', search.family);
   if (search.sort !== 'newest') params.set('sort', search.sort);
   if (page > 1) params.set('page', String(page));
   const query = params.toString();

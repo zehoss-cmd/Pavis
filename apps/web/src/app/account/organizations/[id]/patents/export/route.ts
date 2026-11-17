@@ -16,6 +16,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  if(search.q) query=query.ilike(search.field,literalSearchPattern(search.q));
  if(search.country) query=query.eq('jurisdiction',search.country);
  if(search.status) query=query.eq('legal_status',search.status);
+ if(search.family) query=query.eq('family_id',search.family);
  if(search.sort==='title') query=query.order('title',{ascending:true}).order('id',{ascending:true});
  else query=query.order('created_at',{ascending:search.sort==='oldest'}).order('id',{ascending:search.sort==='oldest'});
  const {data,error,count}=await query.range(0,patentExportLimit-1);

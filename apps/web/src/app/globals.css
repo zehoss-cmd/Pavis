@@ -433,3 +433,29 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px
 .business-card-section { padding-top: 0; }
 .business-card-section .profile-card > p:not(.profile-card-kicker) { color: #687589; font-size: 13px; line-height: 1.6; }
 .profile-review-actions { display: flex; gap: 10px; }
+
+.patent-map-page .map-intro, .map-note { color:#687589; font-size:13px; line-height:1.65; }
+.map-context { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:18px 0; font-size:12px; }
+.map-context a { display:inline-flex; padding:9px 12px; border:1px solid #d8dfe9; border-radius:8px; background:#fff; color:#354768; }
+.patent-map-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(245px,1fr); gap:16px; align-items:start; }
+.patent-map-panel { padding:0; overflow:hidden; }
+.patent-map-canvas { height:460px; background:#e7edf2; }
+.patent-map-marker { min-width:34px; min-height:34px; padding:5px; border:2px solid white; border-radius:50%; color:#fff; background:#3b5384; font:700 12px Pretendard,sans-serif; cursor:pointer; box-shadow:0 2px 8px #28384d55; }
+.patent-map-marker:focus-visible { outline:3px solid #75a7ff; outline-offset:3px; }
+.map-attribution { margin:0; padding:8px 12px; font-size:10px; color:#586778; }
+.map-attribution a { color:#354768; text-decoration:underline; }
+.map-warning { margin:10px 12px; color:#924a35; font-size:12px; }
+.patent-map-details,.patent-map-countries { padding:22px; }
+.patent-map-details h3 { margin:22px 0 10px; font-size:13px; }
+.map-metrics { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:18px 0; }
+.map-metrics div { padding:12px; border-radius:8px; background:#f3f5f9; }
+.map-metrics dt { color:#687589; font-size:11px; }
+.map-metrics dd { margin:7px 0 0; font-size:17px; font-weight:700; }
+.map-status-list,.patent-map-countries ul { list-style:none; padding:0; margin:0; }
+.map-status-list li { display:flex; justify-content:space-between; padding:6px 0; color:#536176; font-size:12px; }
+.map-results-link { margin-top:18px; }
+.patent-map-countries { grid-column:1 / -1; }
+.patent-map-countries ul { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin-top:16px; }
+.patent-map-countries button { display:flex; width:100%; min-height:44px; justify-content:space-between; align-items:center; gap:8px; padding:10px; border:1px solid #e0e4ea; border-radius:8px; background:#fff; color:#354768; text-align:left; cursor:pointer; }
+.patent-map-countries button[aria-pressed=true] { border-color:#3b5384; background:#eef3fc; }
+@media(max-width:760px) { .patent-map-layout { grid-template-columns:1fr; } .patent-map-canvas { height:320px; } .patent-map-countries { grid-column:auto; } }

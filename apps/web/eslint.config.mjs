@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "public/maplibre/**",
+    "tests/browser/fixture/public/maplibre/**",
   ]),
 ]);
 

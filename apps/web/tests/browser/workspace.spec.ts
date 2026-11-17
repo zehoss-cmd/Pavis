@@ -407,3 +407,19 @@ test('business card submission rejects unsupported file types', async ({page}) =
  await file.setInputFiles({name:'card.png',mimeType:'image/png',buffer:Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])});
  await expect(page.locator('.business-card-form [role=alert]')).toHaveCount(0);
 });
+
+test('map country list shows counts and keeps country and family in patent link', async ({page}) => {
+ await page.route('https://tiles.openfreemap.org/styles/liberty',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({version:8,sources:{},layers:[{id:'background',type:'background',paint:{'background-color':'#eef2f5'}}]})}));
+ await page.goto('/map-preview');
+ await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+ await expect(page.locator('.patent-map-canvas')).toHaveAttribute('data-map-ready','true');
+ await expect(page.locator('.map-warning')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'대한민국 2건'})).toBeInViewport();
+ await page.getByRole('button',{name:'대한민국 (KR) 2건'}).click();
+ await expect(page.getByRole('heading',{name:'대한민국 (KR)'})).toBeVisible();
+ await expect(page.getByText('출원번호 입력')).toBeVisible();
+ await expect(page.getByRole('link',{name:'해당 특허 목록 보기'})).toHaveAttribute('href',/country=KR&family=c2000000-0000-4000-8000-000000000001/);
+ await page.getByRole('button',{name:/\(EP\) 1건/}).click();
+ await expect(page.getByRole('link',{name:'해당 특허 목록 보기'})).toHaveAttribute('href',/country=EP&family=/);
+ await expect(page.locator('.map-attribution').getByText('OpenFreeMap',{exact:true})).toBeVisible();
+});

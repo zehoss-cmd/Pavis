@@ -8,7 +8,7 @@ export function resolveWorkspaceOrganization(path:string,organizations:ReadonlyA
  return organizations.length===1?organizations[0].id:null;
 }
 export function workspaceRoutes(org:string|null) {
- if(!org) return {patents:null,portfolios:null,valuations:null,organization:null};
+ if(!org) return {patents:null,portfolios:null,valuations:null,intelligence:null,organization:null};
  const base=`/account/organizations/${org}`;
- return {patents:`${base}/patents`,portfolios:`${base}/portfolios`,valuations:`${base}/valuations`,organization:base};
+ return {patents:`${base}/patents`,portfolios:`${base}/portfolios`,valuations:`${base}/valuations`,intelligence:`${base}/intelligence`,organization:base};
 }
