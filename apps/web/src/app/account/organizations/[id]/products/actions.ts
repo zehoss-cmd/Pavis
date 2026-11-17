@@ -21,6 +21,15 @@ export async function deleteProduct(form:FormData) {
  const supabase=await createClient(),{data:{user},error:authError}=await supabase.auth.getUser();
  if(authError||!user) redirect('/login');
  const {data,error}=await supabase.from('product_assets').delete().eq('organization_id',org).eq('id',id).select('id').maybeSingle();
- if(error||!data)redirect(`${root(org)}/${id}?error=delete`);
+ if(error||!data)redirect(`${root(org)}/${id}?error=${error?.code==='23503'?'linked':'delete'}`);
  redirect(`${root(org)}?deleted=1`);
+}
+export async function changeProductPatent(form:FormData) {
+ const org=String(form.get('organization')||''),product=String(form.get('product')||''),patent=String(form.get('patent')||''),operation=String(form.get('operation')||'');
+ if(!uuid.test(org)||!uuid.test(product)||!uuid.test(patent)||!['add','remove'].includes(operation)) redirect('/account');
+ const path=`${root(org)}/${product}`,supabase=await createClient();
+ const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user)redirect('/login');
+ const result=operation==='add'?await supabase.from('product_patent_links').insert({organization_id:org,product_id:product,patent_id:patent}).select('id').single():await supabase.from('product_patent_links').delete().eq('organization_id',org).eq('product_id',product).eq('patent_id',patent).select('id').maybeSingle();
+ if(result.error||!result.data)redirect(`${path}?link_error=${result.error?.code==='23505'?'duplicate':'save'}#product-patents`);
+ redirect(`${path}?${operation==='add'?'linked':'unlinked'}=1#product-patents`);
 }
