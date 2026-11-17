@@ -94,3 +94,9 @@ export async function mockRevenueDecision(_previous:import('../../../../src/doma
  if(!['reviewed','needs_info'].includes(decision))return {error:'invalid'};
  return redirect(`/review-recovery?result=${decision}`);
 }
+
+/** Product deletion fixture uses synthetic records only. */
+export async function mockProductDelete(form:FormData):Promise<void> {
+ const params=new URLSearchParams({product:String(form.get('product')||''),q:String(form.get('return_query')||''),revenue:String(form.get('return_revenue')||''),page:String(form.get('return_page')||'')});
+ redirect(`/product-delete?${params.toString()}`);
+}

@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseProduct, type ProductFormState } from '@/domain/products/validation';
-import { revenueFilter } from '@/domain/products/revenue-filter';
+import { revenueFilter,deleteReturnQuery } from '@/domain/products/revenue-filter';
 import { classifyReviewError, type RevenueReviewFormState } from '@/domain/products/revenue-review-form';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root=(org:string)=>`/account/organizations/${org}/products`;
@@ -25,7 +25,8 @@ export async function deleteProduct(form:FormData) {
  if(authError||!user) redirect('/login');
  const {data,error}=await supabase.from('product_assets').delete().eq('organization_id',org).eq('id',id).select('id').maybeSingle();
  if(error||!data)redirect(`${root(org)}/${id}?error=${error?.code==='23503'?'linked':'delete'}`);
- redirect(`${root(org)}?deleted=1`);
+ const listQuery=form.get('return_to_list')==='1'?deleteReturnQuery(form.get('return_query'),form.get('return_revenue'),form.get('return_page')):'?deleted=1';
+ redirect(`${root(org)}${listQuery}`);
 }
 export async function changeProductPatent(form:FormData) {
  const org=String(form.get('organization')||''),product=String(form.get('product')||''),patent=String(form.get('patent')||''),operation=String(form.get('operation')||'');
