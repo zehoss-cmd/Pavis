@@ -77,3 +77,20 @@ export async function mockLegalEventSave(_previous:import('../../../../src/app/a
  if(form.get('note')==='인증 오류') return {error:'session'};
  return redirect('/?mock_legal_event_saved=1');
 }
+
+/** Exercise error and retry behavior without submitting any real revenue information. */
+export async function mockRevenueRequest(_previous:import('../../../../src/domain/products/revenue-review-form').RevenueReviewFormState,form:FormData):Promise<import('../../../../src/domain/products/revenue-review-form').RevenueReviewFormState> {
+ await new Promise(resolve=>setTimeout(resolve,150));
+ const evidence=String(form.get('evidence')||'');
+ if(evidence==='연결 오류')return {error:'network'};
+ if(evidence==='중복 요청')return {error:'pending'};
+ return redirect('/review-recovery?result=requested');
+}
+export async function mockRevenueDecision(_previous:import('../../../../src/domain/products/revenue-review-form').RevenueReviewFormState,form:FormData):Promise<import('../../../../src/domain/products/revenue-review-form').RevenueReviewFormState> {
+ await new Promise(resolve=>setTimeout(resolve,150));
+ const note=String(form.get('note')||''),decision=String(form.get('decision')||'');
+ if(note==='처리된 요청')return {error:'stale'};
+ if(note==='연결 오류')return {error:'network'};
+ if(!['reviewed','needs_info'].includes(decision))return {error:'invalid'};
+ return redirect(`/review-recovery?result=${decision}`);
+}

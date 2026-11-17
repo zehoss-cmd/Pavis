@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseProduct, type ProductFormState } from '@/domain/products/validation';
 import { revenueFilter } from '@/domain/products/revenue-filter';
+import { classifyReviewError, type RevenueReviewFormState } from '@/domain/products/revenue-review-form';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root=(org:string)=>`/account/organizations/${org}/products`;
 export async function saveProduct(_state:ProductFormState,form:FormData):Promise<ProductFormState> {
@@ -35,13 +36,14 @@ export async function changeProductPatent(form:FormData) {
  if(result.error||!result.data)redirect(`${path}?link_error=${result.error?.code==='23505'?'duplicate':'save'}#product-patents`);
  redirect(`${path}?${operation==='add'?'linked':'unlinked'}=1#product-patents`);
 }
-export async function requestRevenueReview(form:FormData) {
+export async function requestRevenueReview(_previous:RevenueReviewFormState,form:FormData):Promise<RevenueReviewFormState> {
  const org=String(form.get('organization')||''),product=String(form.get('product')||''),evidence=String(form.get('evidence')||'').trim(),returnRevenue=revenueFilter(form.get('return_revenue'));
- if(!uuid.test(org)||!uuid.test(product))redirect('/account');
+ if(!uuid.test(org)||!uuid.test(product)||!evidence||Array.from(evidence).length>1000)return {error:'invalid'};
  const path=`${root(org)}/${product}`,context=returnRevenue?`&return_revenue=${returnRevenue}`:'';
- if(!evidence||Array.from(evidence).length>1000)redirect(`${path}?review_error=invalid${context}#revenue-review`);
- const supabase=await createClient(),{data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user)redirect('/login');
- const {error}=await supabase.rpc('request_product_revenue_review',{p_org:org,p_product:product,p_evidence:evidence});
- if(error)redirect(`${path}?review_error=${error.code==='23505'?'pending':'request'}${context}#revenue-review`);
+ let supabase:Awaited<ReturnType<typeof createClient>>;
+ try {supabase=await createClient();const {data:{user},error}=await supabase.auth.getUser();if(error||!user)return {error:'session'};}catch{return {error:'network'};}
+ let result;
+ try {result=await supabase.rpc('request_product_revenue_review',{p_org:org,p_product:product,p_evidence:evidence});}catch{return {error:'network'};}
+ if(result.error)return {error:result.status===0?'network':classifyReviewError(result.error.code)};
  redirect(`${path}?review_requested=1${context}#revenue-review`);
 }
