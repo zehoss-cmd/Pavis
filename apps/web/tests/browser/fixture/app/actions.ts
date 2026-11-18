@@ -114,3 +114,8 @@ export async function mockBulkPatent(_previous:import('../../../../src/domain/pr
  if(patents.includes('aaaaaaaa-aaaa-4aaa-8aaa-000000000001'))return {error:'duplicate'};
  return {error:null,linked:patents.length};
 }
+
+export async function mockExternalPatent(_state:import('../../../../src/lib/patent-providers/types').LookupState,form:FormData):Promise<import('../../../../src/lib/patent-providers/types').LookupState>{
+ if(form.get('number')!=='1020050050026')return {error:'provider',result:null};
+ return {error:null,result:{title:'테스트 특허',jurisdiction:'KR',application_number:'1020050050026',publication_number:'1020060123456',registration_number:'',rights_holder:'테스트 회사',filing_date:'2005-06-10',source:'KIPRISPlus'}};
+}

@@ -2,14 +2,15 @@
 import { useActionState, useState, type ChangeEvent } from 'react';
 import { SubmitButton } from '@/components/submit-button';
 import { saveAsset } from './actions';
+import type { PatentLookup } from '@/lib/patent-providers/types';
 import { statusLabels, type Asset, type Family, type AssetFormState } from './form-data';
-export function AssetFormClient({org,families,asset,returnContext,action=saveAsset}:{org:string;families:Family[];asset?:Asset;returnContext?:string;action?:typeof saveAsset}) {
+export function AssetFormClient({org,families,asset,initial,returnContext,action=saveAsset}:{org:string;families:Family[];asset?:Asset;initial?:PatentLookup;returnContext?:string;action?:typeof saveAsset}) {
  const [state,formAction,pending]=useActionState(action,{error:null} as AssetFormState);
  const [values,setValues]=useState(()=>({
-  title:asset?.title || '',jurisdiction:asset?.jurisdiction || '',family:asset?.family_id || '',
-  application_number:asset?.application_number || '',publication_number:asset?.publication_number || '',registration_number:asset?.registration_number || '',
-  rights_holder:asset?.rights_holder || '',inventors:asset?.inventors || '',priority_date:asset?.priority_date || '',filing_date:asset?.filing_date || '',
-  legal_status:asset?.legal_status || 'unknown',verified_date:asset?.verified_date || '',source:asset?.source || '',
+  title:asset?.title || initial?.title || '',jurisdiction:asset?.jurisdiction || initial?.jurisdiction || '',family:asset?.family_id || '',
+  application_number:asset?.application_number || initial?.application_number || '',publication_number:asset?.publication_number || initial?.publication_number || '',registration_number:asset?.registration_number || initial?.registration_number || '',
+  rights_holder:asset?.rights_holder || initial?.rights_holder || '',inventors:asset?.inventors || '',priority_date:asset?.priority_date || '',filing_date:asset?.filing_date || initial?.filing_date || '',
+  legal_status:asset?.legal_status || 'unknown',verified_date:asset?.verified_date || '',source:asset?.source || initial?.source || '',
  }));
  const change=(event:ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>{const {name,value}=event.currentTarget;setValues(current=>({...current,[name]:value}));};
  const messages={invalid:'입력 내용을 확인해 주세요. 작성한 내용은 유지됩니다.',duplicate:'같은 국가에 동일한 출원번호가 이미 등록되어 있습니다. 작성한 내용을 수정해 주세요.',save:'저장하지 못했습니다. 입력 내용과 권한을 확인해 주세요.',network:'연결 오류가 발생했습니다. 특허 목록에서 저장 여부를 확인한 뒤 다시 시도해 주세요.',session:'로그인 상태를 확인할 수 없습니다. 다른 탭에서 로그인 상태를 확인한 뒤 다시 시도해 주세요.'};
