@@ -112,5 +112,5 @@ export async function mockBulkPatent(_previous:import('../../../../src/domain/pr
  await new Promise(resolve=>setTimeout(resolve,150));
  const patents=form.getAll('patent');
  if(patents.includes('aaaaaaaa-aaaa-4aaa-8aaa-000000000001'))return {error:'duplicate'};
- return redirect(`/bulk-product-patents?${new URLSearchParams({count:String(patents.length),query:String(form.get('asset_query')),field:String(form.get('asset_field')),page:String(form.get('choice_page'))})}`);
+ return {error:null,linked:patents.length};
 }

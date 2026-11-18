@@ -1,4 +1,7 @@
+import Link from 'next/link';
 import { BulkPatentForm } from '../../../../../src/app/account/organizations/[id]/products/[productId]/bulk-patent-form';
 import { mockBulkPatent } from '../actions';
+import { PatentChoiceSearch } from '../../../../../src/app/account/organizations/[id]/products/[productId]/patent-choice-search';
+const many=Array.from({length:25},(_,i)=>({id:`bbbbbbbb-bbbb-4bbb-8bbb-${String(i+1).padStart(12,'0')}`,title:`대량 특허 ${i+1}`,jurisdiction:'KR',application_number:null}));
 const choices=['첫 특허','둘째 특허','셋째 특허'].map((title,i)=>({id:`aaaaaaaa-aaaa-4aaa-8aaa-${String(i+1).padStart(12,'0')}`,title,jurisdiction:'KR',application_number:null}));
-export default function Page(){return <main><h1>특허 일괄 연결</h1><BulkPatentForm org="org" product="product" choices={choices} query="검색어" field="application_number" choicePage={2} linkedPage={1} action={mockBulkPatent}/></main>;}
+export default async function Page({searchParams}:{searchParams:Promise<{page?:string}>}){const page=(await searchParams).page||'1';return <main><h1>특허 일괄 연결</h1><PatentChoiceSearch field="title" query="" linkedPage={1}/><BulkPatentForm org="org" product="product" choices={page==='3'?many:page==='1'?choices.slice(0,1):choices.slice(1)} action={mockBulkPatent}/><nav><Link href="?page=1">첫 페이지</Link><Link href="?page=2">둘째 페이지</Link><Link href="?page=3">대량 페이지</Link></nav></main>;}
