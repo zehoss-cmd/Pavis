@@ -34,3 +34,14 @@ test('the 25 item limit applies across pages',async({page})=>{
  await expect(page.getByText('25건 선택')).toBeVisible();
  await expect(page.getByRole('checkbox',{name:/첫 특허/})).not.toBeChecked();
 });
+
+test('guidance navigates past linked-only results without losing selection',async({page})=>{
+ await page.goto('/bulk-product-patents');
+ await page.getByRole('checkbox',{name:/첫 특허/}).check();
+ await page.getByRole('link',{name:'연결된 페이지만'}).click();
+ await expect(page.getByText('이 페이지의 특허는 모두 이 제품에 연결되어 있습니다.')).toBeVisible();
+ await expect(page.getByText('1건 선택')).toBeVisible();
+ await page.getByRole('link',{name:'다음 특허 페이지'}).click();
+ await expect(page.getByRole('checkbox',{name:/둘째 특허/})).toBeVisible();
+ await expect(page.getByText('1건 선택')).toBeVisible();
+});
