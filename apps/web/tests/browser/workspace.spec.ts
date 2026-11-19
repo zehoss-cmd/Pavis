@@ -87,6 +87,15 @@ test('invalid and duplicate CSV rows cannot be registered', async ({page}) => {
  await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
 });
 
+test('commit conflict reports the source line without another preview',async({page})=>{
+ await page.goto('/');
+ await page.locator('input[type=file]').setInputFiles({name:'late.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n\n특허,KR,AFTER-PREVIEW')});
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await page.getByRole('button',{name:'확인 후 등록'}).click();
+ await expect(page.getByRole('alert').filter({hasText:'이미 등록되어 있습니다'})).toContainText('CSV 레코드 마지막 줄 3');
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+});
+
 test('a real XLSX fixture is previewed and can be confirmed', async ({page}) => {
  await page.goto('/');
  await page.locator('input[type=file]').setInputFiles(path.resolve(__dirname,'../fixtures/patent-excel.xlsx'));

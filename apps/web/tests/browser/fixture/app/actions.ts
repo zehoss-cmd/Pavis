@@ -6,10 +6,12 @@ import { parsePatentXlsx } from '../../../../src/lib/patents/xlsx-import';
 import type { ImportState } from '../../../../src/app/account/organizations/[id]/patents/import/state';
 
 /** Isolated browser fixture: real parsers, fake existing records, no database. */
-export async function mockImport(_state:ImportState,form:FormData):Promise<ImportState> {
+export async function mockImport(state:ImportState,form:FormData):Promise<ImportState> {
  await new Promise(resolve=>setTimeout(resolve,300));
  if(form.get('operation')==='commit') {
   const parsed=validateRows(JSON.parse(String(form.get('rows'))));
+  const conflict=parsed.rows.findIndex(row=>row.application_number==='AFTER-PREVIEW');
+  if(conflict>=0) return {stage:'error',rows:[],errors:[`${importRowLabel(conflict,state.locations)}: 같은 국가의 출원번호가 이미 등록되어 있습니다.`]};
   return parsed.errors.length ? {stage:'error',rows:[],errors:parsed.errors} : {stage:'success',rows:[],errors:[],count:parsed.rows.length};
  }
  const file=form.get('file');
@@ -17,7 +19,7 @@ export async function mockImport(_state:ImportState,form:FormData):Promise<Impor
  const parsed=file.name.toLowerCase().endsWith('.xlsx') ? await parsePatentXlsx(Buffer.from(await file.arrayBuffer())) : parsePatentCsv(await file.text());
  if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
  const errors=parsed.rows.flatMap((row,index)=>normalizedNumber(row.application_number)==='EXISTS-001' ? [`${importRowLabel(index,parsed.locations)}: 같은 국가의 출원번호가 이미 등록되어 있습니다.`] : []);
- return {stage:'preview',rows:parsed.rows,errors};
+ return {stage:'preview',rows:parsed.rows,errors,locations:parsed.locations};
 }
 
 /** Simulate save errors without connecting to any database. */

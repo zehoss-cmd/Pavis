@@ -44,10 +44,10 @@ export async function previewCsv(_state:ImportState,form:FormData):Promise<Impor
   }
   if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
   if(Buffer.byteLength(JSON.stringify(parsed.rows),'utf8')>maxCsvBytes*2) return fail('검토할 내용이 너무 큽니다. 파일을 나누어 가져와 주세요.');
-  try {return {stage:'preview',rows:parsed.rows,errors:await duplicateErrors(context.supabase,context.org,parsed.rows,parsed.locations)};}
+  try {return {stage:'preview',rows:parsed.rows,locations:parsed.locations,errors:await duplicateErrors(context.supabase,context.org,parsed.rows,parsed.locations)};}
   catch {return fail('중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
-export async function commitCsv(_state:ImportState,form:FormData):Promise<ImportState> {
+export async function commitCsv(state:ImportState,form:FormData):Promise<ImportState> {
   const context=await access(form);
   if(!context) return fail('특허를 등록할 권한이 없습니다.');
   const payload=form.get('rows');
@@ -55,13 +55,24 @@ export async function commitCsv(_state:ImportState,form:FormData):Promise<Import
   let input:unknown;try {input=JSON.parse(payload);}catch{return fail('가져올 데이터가 올바르지 않습니다. 다시 미리보기해 주세요.');}
   const parsed=validateRows(input);
   if(parsed.errors.length) return {stage:'error',rows:[],errors:parsed.errors};
+  // Preview metadata is client-carried and used only for error labels.
+  const locations=state?.stage==='preview' && Array.isArray(state.locations)
+    && state.locations.length===parsed.rows.length && JSON.stringify(state.rows)===payload
+    ? state.locations.map(location=>typeof location==='string' && /^(CSV 레코드 마지막 줄 [1-9]\d{0,5}|XLSX [1-9]\d{0,5}행)$/.test(location)?location:'')
+    : undefined;
+  const findDuplicates=()=>duplicateErrors(context.supabase,context.org,parsed.rows,locations);
   try {
-    const duplicates=await duplicateErrors(context.supabase,context.org,parsed.rows);
-    if(duplicates.length) return {stage:'error',rows:[],errors:[...duplicates,'파일을 다시 검토하면 원본의 중복 위치를 확인할 수 있습니다.']};
+    const duplicates=await findDuplicates();
+    if(duplicates.length) return {stage:'error',rows:[],errors:duplicates};
   } catch {return fail('중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
   const records=parsed.rows.map(row=>({organization_id:context.org,title:row.title,jurisdiction:row.jurisdiction,application_number:row.application_number,publication_number:row.publication_number||null,registration_number:row.registration_number||null,rights_holder:row.rights_holder||null,inventors:row.inventors||null,priority_date:row.priority_date||null,filing_date:row.filing_date||null,legal_status:row.legal_status,source:row.source||null,verified_date:row.verified_date||null}));
   const {error}=await context.supabase.from('patent_assets').insert(records);
-  if(error) return fail(error.code==='23505'?'등록 중 출원번호가 중복되었습니다. 기존 특허를 확인한 뒤 다시 미리보기해 주세요.':'가져오지 못했습니다. 입력 내용과 권한을 확인해 주세요.');
+  if(error?.code==='23505') {
+    const duplicates=await findDuplicates().catch(()=>[]);
+    if(duplicates.length) return {stage:'error',rows:[],errors:duplicates};
+    return fail('등록 중 중복이 발생했습니다. 파일을 다시 검토해 주세요.');
+  }
+  if(error) return fail('가져오지 못했습니다. 입력 내용과 권한을 확인해 주세요.');
   return {stage:'success',rows:[],errors:[],count:records.length};
 }
 export async function handleCsv(state:ImportState,form:FormData):Promise<ImportState> {
