@@ -1,6 +1,6 @@
 'use server';
 import { patentAccess } from '@/lib/patents/access';
-import { maxCsvBytes, normalizedNumber, parsePatentCsv, validateRows, type PatentCsvRow } from '@/lib/patents/csv-import';
+import { importRowLabel, maxCsvBytes, normalizedNumber, parsePatentCsv, validateRows, type PatentCsvRow } from '@/lib/patents/csv-import';
 import { parsePatentXlsx } from '@/lib/patents/xlsx-import';
 import type { ImportState } from './state';
 const fail=(message:string):ImportState=>({stage:'error',rows:[],errors:[message]});
@@ -10,7 +10,7 @@ async function access(form:FormData) {
   if(!value.canWrite) return null;
   return {org,supabase:value.supabase};
 }
-async function duplicateErrors(supabase:Awaited<ReturnType<typeof patentAccess>>['supabase'],org:string,rows:PatentCsvRow[]) {
+async function duplicateErrors(supabase:Awaited<ReturnType<typeof patentAccess>>['supabase'],org:string,rows:PatentCsvRow[],locations?:readonly string[]) {
   const groups=new Map<string,Set<string>>();
   for(const row of rows) {if(!groups.has(row.jurisdiction))groups.set(row.jurisdiction,new Set());groups.get(row.jurisdiction)!.add(normalizedNumber(row.application_number));}
   const existing=new Set<string>();
@@ -23,7 +23,7 @@ async function duplicateErrors(supabase:Awaited<ReturnType<typeof patentAccess>>
     }));
     for(const items of batch) for(const item of items) existing.add(`${item.jurisdiction}|${item.application_number_normalized}`);
   }
-  return rows.flatMap((row,index)=>existing.has(`${row.jurisdiction}|${normalizedNumber(row.application_number)}`)?[`데이터 ${index+1}번: 같은 국가의 출원번호가 이미 등록되어 있습니다.`]:[]);
+  return rows.flatMap((row,index)=>existing.has(`${row.jurisdiction}|${normalizedNumber(row.application_number)}`)?[`${importRowLabel(index,locations)}: 같은 국가의 출원번호가 이미 등록되어 있습니다.`]:[]);
 }
 export async function previewCsv(_state:ImportState,form:FormData):Promise<ImportState> {
   const context=await access(form);
@@ -44,7 +44,7 @@ export async function previewCsv(_state:ImportState,form:FormData):Promise<Impor
   }
   if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
   if(Buffer.byteLength(JSON.stringify(parsed.rows),'utf8')>maxCsvBytes*2) return fail('검토할 내용이 너무 큽니다. 파일을 나누어 가져와 주세요.');
-  try {return {stage:'preview',rows:parsed.rows,errors:await duplicateErrors(context.supabase,context.org,parsed.rows)};}
+  try {return {stage:'preview',rows:parsed.rows,errors:await duplicateErrors(context.supabase,context.org,parsed.rows,parsed.locations)};}
   catch {return fail('중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
 export async function commitCsv(_state:ImportState,form:FormData):Promise<ImportState> {
@@ -57,7 +57,7 @@ export async function commitCsv(_state:ImportState,form:FormData):Promise<Import
   if(parsed.errors.length) return {stage:'error',rows:[],errors:parsed.errors};
   try {
     const duplicates=await duplicateErrors(context.supabase,context.org,parsed.rows);
-    if(duplicates.length) return {stage:'error',rows:[],errors:duplicates};
+    if(duplicates.length) return {stage:'error',rows:[],errors:[...duplicates,'파일을 다시 검토하면 원본의 중복 위치를 확인할 수 있습니다.']};
   } catch {return fail('중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');}
   const records=parsed.rows.map(row=>({organization_id:context.org,title:row.title,jurisdiction:row.jurisdiction,application_number:row.application_number,publication_number:row.publication_number||null,registration_number:row.registration_number||null,rights_holder:row.rights_holder||null,inventors:row.inventors||null,priority_date:row.priority_date||null,filing_date:row.filing_date||null,legal_status:row.legal_status,source:row.source||null,verified_date:row.verified_date||null}));
   const {error}=await context.supabase.from('patent_assets').insert(records);

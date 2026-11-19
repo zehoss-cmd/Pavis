@@ -3,7 +3,7 @@ import { parse } from 'csv-parse/sync';
 export const csvHeaders = ['title','jurisdiction','application_number','publication_number','registration_number','rights_holder','inventors','priority_date','filing_date','legal_status','source','verified_date'] as const;
 export type CsvHeader = typeof csvHeaders[number];
 export type PatentCsvRow = Record<CsvHeader,string>;
-export type CsvResult = { rows: PatentCsvRow[]; errors: string[] };
+export type CsvResult = { rows: PatentCsvRow[]; errors: string[]; locations?: readonly string[] };
 export const maxCsvRows = 100;
 export const maxCsvBytes = 256 * 1024;
 const statusMap:Record<string,string>={unknown:'unknown',pending:'pending',granted:'granted',rejected:'rejected',withdrawn:'withdrawn',expired:'expired',lapsed:'lapsed',revoked:'revoked','미확인':'unknown','출원 중':'pending','등록':'granted','거절':'rejected','취하':'withdrawn','만료':'expired','소멸':'lapsed','무효':'revoked'};
@@ -38,6 +38,10 @@ export function validateRows(input:unknown):CsvResult {
   });
   return {rows,errors};
 }
+export function importRowLabel(index:number, locations:readonly string[] = []) {
+  const location=locations[index];
+  return `데이터 ${index+1}번${location ? ` (${location})` : ''}`;
+}
 export function parsePatentTable(data:string[][], locations:readonly string[]=[]):CsvResult {
   if(data.length<2) return {rows:[],errors:['제목 행과 데이터 행이 필요합니다.']};
   if(data.length-1>maxCsvRows) return {rows:[],errors:[`한 번에 최대 ${maxCsvRows}건까지 가져올 수 있습니다.`]};
@@ -45,10 +49,11 @@ export function parsePatentTable(data:string[][], locations:readonly string[]=[]
   if(new Set(header).size!==header.length || header.some(key=>!csvHeaders.includes(key as CsvHeader)) || !['title','jurisdiction','application_number'].every(key=>header.includes(key))) return {rows:[],errors:['제목 행을 확인해 주세요. title, jurisdiction, application_number는 필수이며, 안내된 열 이름만 사용할 수 있습니다.']};
   if(data.slice(1).some(row=>row.length>header.length && row.slice(header.length).some(value=>value.trim()))) return {rows:[],errors:['제목이 없는 열에 데이터가 있습니다. 열 이름을 확인해 주세요.']};
   const result=validateRows(data.slice(1).map(row=>Object.fromEntries(header.map((key,i)=>[key,row[i]??'']))));
-  return {...result,errors:result.errors.map(error=>error.replace(/데이터 (\d+)번/g,(label,index)=>{
-    const location=locations[Number(index)-1];
-    return location?`${label} (${location})`:label;
-  }))};
+  return {
+    ...result,
+    locations,
+    errors:result.errors.map(error=>error.replace(/데이터 (\d+)번/g,(_,index)=>importRowLabel(Number(index)-1,locations))),
+  };
 }
 export function parsePatentCsv(text:string):CsvResult {
   let entries:{record:string[];info:{lines:number}}[];

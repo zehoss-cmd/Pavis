@@ -82,8 +82,8 @@ test('invalid and duplicate CSV rows cannot be registered', async ({page}) => {
  await page.getByRole('button',{name:'파일 검토',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'국가·출원번호가 중복'})).toBeVisible();
  await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
- await select('existing.csv','title,jurisdiction,application_number\n기존 특허,KR,EXISTS-001');
- await expect(page.getByRole('alert').filter({hasText:'이미 등록되어 있습니다'})).toBeVisible();
+ await select('existing.csv','title,jurisdiction,application_number\n\n기존 특허,KR,EXISTS-001');
+ await expect(page.getByRole('alert').filter({hasText:'이미 등록되어 있습니다'})).toContainText('CSV 레코드 마지막 줄 3');
  await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
 });
 

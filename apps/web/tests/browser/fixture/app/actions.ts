@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { parsePatentCsv, validateRows, normalizedNumber, maxCsvBytes } from '../../../../src/lib/patents/csv-import';
+import { parsePatentCsv, validateRows, normalizedNumber, maxCsvBytes, importRowLabel } from '../../../../src/lib/patents/csv-import';
 import { parsePatentXlsx } from '../../../../src/lib/patents/xlsx-import';
 import type { ImportState } from '../../../../src/app/account/organizations/[id]/patents/import/state';
 
@@ -16,7 +16,7 @@ export async function mockImport(_state:ImportState,form:FormData):Promise<Impor
  if(!(file instanceof File) || !file.size || file.size>maxCsvBytes) return {stage:'error',rows:[],errors:['파일은 비어 있지 않아야 하며 256KB 이하여야 합니다.']};
  const parsed=file.name.toLowerCase().endsWith('.xlsx') ? await parsePatentXlsx(Buffer.from(await file.arrayBuffer())) : parsePatentCsv(await file.text());
  if(parsed.errors.length) return {stage:'preview',rows:[],errors:parsed.errors,count:parsed.rows.length};
- const errors=parsed.rows.flatMap((row,index)=>normalizedNumber(row.application_number)==='EXISTS-001' ? [`데이터 ${index+1}번: 같은 국가의 출원번호가 이미 등록되어 있습니다.`] : []);
+ const errors=parsed.rows.flatMap((row,index)=>normalizedNumber(row.application_number)==='EXISTS-001' ? [`${importRowLabel(index,parsed.locations)}: 같은 국가의 출원번호가 이미 등록되어 있습니다.`] : []);
  return {stage:'preview',rows:parsed.rows,errors};
 }
 
