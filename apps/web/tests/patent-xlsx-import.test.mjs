@@ -47,3 +47,10 @@ test('rejects non-XML worksheet targets and malformed archives',async()=>{
  assert.ok((await parsePatentXlsx(workbook(wrap(heading+row),{'xl/__proto__/x.xml':'unexpected'}))).errors.length);
  assert.ok((await parsePatentXlsx(workbook(wrap(heading+row),{'xl/toString/x.xml':'unexpected'}))).errors.length);
 });
+
+test('reports the worksheet row and cell even after a blank row',async()=>{
+ const badCountry='<row r="4">'+cell('A4','Test')+cell('B4','KOR')+cell('C4','123')+'</row>';
+ assert.match((await parsePatentXlsx(workbook(wrap(heading+badCountry)))).errors[0],/XLSX 4행/);
+ const badNumber='<row r="4">'+cell('A4','Test')+cell('B4','KR')+'<c r="C4"><v>12</v></c></row>';
+ assert.match((await parsePatentXlsx(workbook(wrap(heading+badNumber)))).errors[0],/XLSX C4 셀/);
+});

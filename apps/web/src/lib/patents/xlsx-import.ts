@@ -87,10 +87,11 @@ export async function parsePatentXlsx(buffer:Buffer):Promise<CsvResult> {
    if(value===null || value===undefined) return '';
    if(typeof value==='string') return value;
    if(value instanceof Date && rowIndex>0 && dates.has(header[colIndex]) && !Number.isNaN(value.valueOf())) return value.toISOString().slice(0,10);
-   errors.push(`데이터 ${Math.max(rowIndex,1)}번: 날짜 외 셀은 텍스트 형식으로 입력해 주세요.`);
+   errors.push(`XLSX ${String.fromCharCode(65+colIndex)}${rowIndex+1} 셀: 날짜 외 셀은 텍스트 형식으로 입력해 주세요.`);
    return '';
   }));
   if(errors.length) return {rows:[],errors:errors.slice(0,100)};
-  return parsePatentTable([table[0],...table.slice(1).filter(row=>row.some(value=>value.trim()))]);
+  const nonEmpty=table.slice(1).flatMap((row,index)=>row.some(value=>value.trim())?[{row,line:index+2}]:[]);
+  return parsePatentTable([table[0],...nonEmpty.map(entry=>entry.row)],nonEmpty.map(entry=>`XLSX ${entry.line}행`));
  } catch {return {rows:[],errors:['XLSX 파일을 읽을 수 없습니다. 시트 1개, 100건 이하의 텍스트 데이터만 사용하고 수식·외부 연결을 제거해 주세요.']};}
 }

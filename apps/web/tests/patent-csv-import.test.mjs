@@ -20,3 +20,8 @@ test('revalidates client supplied data and bounds bulk size',()=>{
  assert.ok(validateRows([{title:'x',jurisdiction:'KR',application_number:'1',legal_status:'invalid'}]).errors.length);
  assert.ok(validateRows([{title:'x',jurisdiction:'KR',application_number:'1',legal_status:'toString'}]).errors.length);
 });
+
+test('duplicate errors identify both source lines after a blank line and a quoted newline',()=>{
+ const result=parsePatentCsv('title,jurisdiction,application_number\n"first\npatent",KR,123\n\nsecond,KR,123');
+ assert.match(result.errors[0],/데이터 2번 \(CSV 레코드 마지막 줄 5\).*데이터 1번 \(CSV 레코드 마지막 줄 3\)/);
+});
