@@ -1,7 +1,8 @@
 'use client';
-import { useActionState, useState, type ChangeEvent } from 'react';
+import { useActionState, useState, useId, useTransition, type ChangeEvent } from 'react';
 import { SubmitButton } from '@/components/submit-button';
-import { saveAsset } from './actions';
+import Link from '@/components/navigation-link';
+import { saveAsset, checkApplicationNumber } from './actions';
 import type { PatentLookup } from '@/lib/patent-providers/types';
 import { statusLabels, type Asset, type Family, type AssetFormState } from './form-data';
 export function AssetFormClient({org,families,asset,initial,returnContext,action=saveAsset}:{org:string;families:Family[];asset?:Asset;initial?:PatentLookup;returnContext?:string;action?:typeof saveAsset}) {
@@ -12,6 +13,23 @@ export function AssetFormClient({org,families,asset,initial,returnContext,action
   rights_holder:asset?.rights_holder || initial?.rights_holder || '',inventors:asset?.inventors || '',priority_date:asset?.priority_date || '',filing_date:asset?.filing_date || initial?.filing_date || '',
   legal_status:asset?.legal_status || 'unknown',verified_date:asset?.verified_date || '',source:asset?.source || initial?.source || '',
  }));
+ const hintId=useId();
+ const [checking,startCheck]=useTransition();
+ const [check,setCheck]=useState<{key:string; result:Awaited<ReturnType<typeof checkApplicationNumber>>}>();
+ const country=values.jurisdiction.trim().toUpperCase();
+ const number=values.application_number.trim();
+ const checkKey=JSON.stringify([country,number]);
+ const result=check?.key===checkKey?check.result:undefined;
+ function checkNumber() {
+  setCheck(undefined);
+  startCheck(async ()=>{
+   try {
+    setCheck({key:checkKey,result:await checkApplicationNumber(org,country,number,asset?.id)});
+   } catch {
+    setCheck({key:checkKey,result:{status:'unavailable'}});
+   }
+  });
+ }
  const change=(event:ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>{const {name,value}=event.currentTarget;setValues(current=>({...current,[name]:value}));};
  const messages={invalid:'입력 내용을 확인해 주세요. 작성한 내용은 유지됩니다.',duplicate:'같은 국가에 동일한 출원번호가 이미 등록되어 있습니다. 작성한 내용을 수정해 주세요.',save:'저장하지 못했습니다. 입력 내용과 권한을 확인해 주세요.',network:'연결 오류가 발생했습니다. 특허 목록에서 저장 여부를 확인한 뒤 다시 시도해 주세요.',session:'로그인 상태를 확인할 수 없습니다. 다른 탭에서 로그인 상태를 확인한 뒤 다시 시도해 주세요.'};
  // React may reset form controls after an action returns an error; keep the entered values.
@@ -24,7 +42,21 @@ export function AssetFormClient({org,families,asset,initial,returnContext,action
    <label>특허 패밀리<select name="family" value={values.family} onChange={change}><option value="">연결하지 않음</option>{families.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
   </div></fieldset>
   <fieldset className="valuation-fieldset" disabled={pending}><legend>특허 번호와 권리 관계</legend><div className="dcf-field-grid">
-   <label>출원번호<input name="application_number" maxLength={100} value={values.application_number} onChange={change} placeholder="출원번호가 있다면 입력"/></label>
+   <div>
+    <label>출원번호<input name="application_number" maxLength={100} value={values.application_number} onChange={change} aria-describedby={hintId} placeholder="출원번호가 있다면 입력"/></label>
+    <p id={hintId}>{country==='KR'
+      ? '한국 특허 출원번호는 일반적으로 13자리입니다. 예: 1020050050026'
+      : '해당 관할의 출원번호를 입력하세요. 공개번호와 등록번호는 별도 항목입니다.'}</p>
+    <button type="button" onClick={checkNumber} disabled={checking || !number || !/^[A-Z]{2}$/.test(country)}>
+     {checking?'확인 중…':'중복 확인'}
+    </button>
+    <div role="status">
+     {result?.status==='clear' && <p>이 조직에서 같은 관할과 출원번호로 등록된 특허를 찾지 못했습니다.</p>}
+     {result?.status==='duplicate' && <p>이미 등록된 특허가 있습니다. <Link href={`/account/organizations/${org}/patents/${result.match.id}`}>{result.match.title}</Link></p>}
+     {result?.status==='invalid' && <p>관할과 출원번호를 확인해 주세요.</p>}
+     {result?.status==='unavailable' && <p>중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
+    </div>
+   </div>
    <label>공개번호<input name="publication_number" maxLength={100} value={values.publication_number} onChange={change} placeholder="공개번호가 있다면 입력"/></label>
    <label>등록번호<input name="registration_number" maxLength={100} value={values.registration_number} onChange={change} placeholder="등록번호가 있다면 입력"/></label>
    <label>권리자<input name="rights_holder" maxLength={500} value={values.rights_holder} onChange={change} placeholder="여러 명이면 쉼표로 구분"/></label>

@@ -2,6 +2,8 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseFamilySearch, savedFamilyContext } from '@/lib/patents/family-search';
+import { patentAccess } from '@/lib/patents/access';
+import { normalizedNumber } from '@/lib/patents/csv-import';
 import type { AssetFormState } from './form-data';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const statuses = ['unknown','pending','granted','rejected','withdrawn','expired','lapsed','revoked'];
@@ -23,6 +25,24 @@ export async function createFamily(form:FormData) {
   if(error) redirect(`${root(org)}?error=family`);
   redirect(`${root(org)}?family_created=1`);
 }
+export async function checkApplicationNumber(org: string, jurisdiction: string, number: string, asset?: string) {
+  if (!uuid.test(org) || !/^[A-Z]{2}$/.test(jurisdiction) || number.length > 100 ||
+      !normalizedNumber(number) || (asset && !uuid.test(asset))) {
+    return { status: 'invalid' } as const;
+  }
+  const { supabase, canWrite } = await patentAccess(org);
+  if (!canWrite) return { status: 'unavailable' } as const;
+
+  let query = supabase.from('patent_assets').select('id,title')
+    .eq('organization_id', org)
+    .eq('jurisdiction', jurisdiction)
+    .eq('application_number_normalized', normalizedNumber(number));
+  if (asset) query = query.neq('id', asset);
+  const { data, error } = await query.maybeSingle();
+  if (error) return { status: 'unavailable' } as const;
+  return data ? { status: 'duplicate', match: data } as const : { status: 'clear' } as const;
+}
+
 export async function saveAsset(_previous:AssetFormState,form:FormData):Promise<AssetFormState> {
   const org=read(form,'organization'), asset=read(form,'asset'), family=read(form,'family');
   if(!uuid.test(org) || (asset && !uuid.test(asset))) redirect('/account?error=1');
