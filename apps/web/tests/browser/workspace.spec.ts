@@ -432,3 +432,24 @@ test('map country list shows counts and keeps country and family in patent link'
  await expect(page.getByRole('link',{name:'해당 특허 목록 보기'})).toHaveAttribute('href',/country=EP&family=/);
  await expect(page.locator('.map-attribution').getByText('OpenFreeMap',{exact:true})).toBeVisible();
 });
+
+test('import recovery filters rows, copies issues and chooses a corrected file',async({page})=>{
+ await page.addInitScript(()=>{
+  Object.defineProperty(navigator,'clipboard',{value:{writeText:async (text:string)=>{document.body.dataset.copiedErrors=text;}}});
+ });
+ await page.goto('/');
+ await page.locator('input[type=file]').setInputFiles({name:'mixed.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n정상,KR,NEW-001\n중복,KR,EXISTS-001')});
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ const table=page.getByRole('table',{name:''}).filter({hasText:'EXISTS-001'});
+ await expect(table.getByText('NEW-001')).toBeVisible();
+ await page.getByRole('checkbox',{name:/오류 행만 보기/}).check();
+ await expect(table.getByText('NEW-001')).toHaveCount(0);
+ await expect(table.getByText('2 · 오류')).toBeVisible();
+ await page.getByRole('button',{name:'오류 목록 복사'}).click();
+ await expect(page.locator('body')).toHaveAttribute('data-copied-errors',/CSV 레코드 마지막 줄 3/);
+ const [chooser]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'수정한 파일 선택'}).click()]);
+ await chooser.setFiles({name:'fixed.csv',mimeType:'text/csv',buffer:Buffer.from('title,jurisdiction,application_number\n정상,KR,NEW-001')});
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toHaveCount(0);
+ await page.getByRole('button',{name:'파일 검토',exact:true}).click();
+ await expect(page.getByRole('button',{name:'확인 후 등록'})).toBeVisible();
+});
