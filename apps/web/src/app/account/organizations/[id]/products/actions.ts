@@ -35,8 +35,11 @@ export async function changeProductPatent(form:FormData) {
  const path=`${root(org)}/${product}`,supabase=await createClient();
  const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user)redirect('/login');
  const result=operation==='add'?await supabase.from('product_patent_links').insert({organization_id:org,product_id:product,patent_id:patent}).select('id').single():await supabase.from('product_patent_links').delete().eq('organization_id',org).eq('product_id',product).eq('patent_id',patent).select('id').maybeSingle();
- if(result.error||!result.data)redirect(`${path}?link_error=${result.error?.code==='23505'?'duplicate':'save'}#product-patents`);
- redirect(`${path}?${operation==='add'?'linked':'unlinked'}=1#product-patents`);
+ const submitted=new URLSearchParams(String(form.get('return_context')||''));
+ const context=productDetailContext(submitted.get('return_query'),submitted.get('return_revenue'),submitted.get('return_page'));
+ if(result.error||!result.data) context.set('link_error',result.error?.code==='23505'?'duplicate':'save');
+ else context.set(operation==='add'?'linked':'unlinked','1');
+ redirect(`${path}?${context}#product-patents`);
 }
 export async function requestRevenueReview(_previous:RevenueReviewFormState,form:FormData):Promise<RevenueReviewFormState> {
  const org=String(form.get('organization')||''),product=String(form.get('product')||''),evidence=String(form.get('evidence')||'').trim();

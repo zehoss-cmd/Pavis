@@ -9,6 +9,7 @@ test('selection survives page navigation and errors, and clears after success',a
  await expect(page.getByRole('heading',{name:'선택한 특허 확인'})).toBeVisible();
  await page.getByLabel('검색어').fill('선택 테스트');
  await page.getByRole('button',{name:'검색',exact:true}).click();
+ await expect(page).toHaveURL(/return_query=sample&return_revenue=missing&return_page=2/);
  await expect(page.getByText('1건 선택')).toBeVisible();
  await page.getByRole('link',{name:'둘째 페이지'}).click();
  await page.getByRole('button',{name:'이 페이지 전체 선택'}).click();
