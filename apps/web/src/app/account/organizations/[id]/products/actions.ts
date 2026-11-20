@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseProduct, type ProductFormState } from '@/domain/products/validation';
-import { revenueFilter,deleteReturnQuery,productDetailContext } from '@/domain/products/revenue-filter';
+import { deleteReturnQuery,productDetailContext } from '@/domain/products/revenue-filter';
 import { classifyReviewError, type RevenueReviewFormState } from '@/domain/products/revenue-review-form';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root=(org:string)=>`/account/organizations/${org}/products`;
@@ -39,15 +39,17 @@ export async function changeProductPatent(form:FormData) {
  redirect(`${path}?${operation==='add'?'linked':'unlinked'}=1#product-patents`);
 }
 export async function requestRevenueReview(_previous:RevenueReviewFormState,form:FormData):Promise<RevenueReviewFormState> {
- const org=String(form.get('organization')||''),product=String(form.get('product')||''),evidence=String(form.get('evidence')||'').trim(),returnRevenue=revenueFilter(form.get('return_revenue'));
+ const org=String(form.get('organization')||''),product=String(form.get('product')||''),evidence=String(form.get('evidence')||'').trim();
  if(!uuid.test(org)||!uuid.test(product)||!evidence||Array.from(evidence).length>1000)return {error:'invalid'};
- const path=`${root(org)}/${product}`,context=returnRevenue?`&return_revenue=${returnRevenue}`:'';
+ const path=`${root(org)}/${product}`;
+ const params=productDetailContext(form.get('return_query'),form.get('return_revenue'),form.get('return_page'));
+ params.set('review_requested','1');
  let supabase:Awaited<ReturnType<typeof createClient>>;
  try {supabase=await createClient();const {data:{user},error}=await supabase.auth.getUser();if(error||!user)return {error:'session'};}catch{return {error:'network'};}
  let result;
  try {result=await supabase.rpc('request_product_revenue_review',{p_org:org,p_product:product,p_evidence:evidence});}catch{return {error:'network'};}
  if(result.error)return {error:result.status===0?'network':classifyReviewError(result.error.code)};
- redirect(`${path}?review_requested=1${context}#revenue-review`);
+ redirect(`${path}?${params}#revenue-review`);
 }
 export async function savePatentContribution(_previous:import('@/domain/products/patent-contribution').ContributionFormState,form:FormData):Promise<import('@/domain/products/patent-contribution').ContributionFormState> {
  const {parseContribution}=await import('@/domain/products/patent-contribution');

@@ -2,7 +2,7 @@ import Link from '@/components/navigation-link';
 import { RevenueReviewForm } from '@/components/revenue-review-form';
 import { LoadError } from '@/components/load-error';
 import { patentAccess } from '@/lib/patents/access';
-import type { RevenueFilter } from '@/domain/products/revenue-filter';
+import { productDetailContext, type productReturnContext } from '@/domain/products/revenue-filter';
 import { reviewStatusLabel } from '@/domain/products/revenue-review-history';
 import { requestRevenueReview } from '../actions';
 type Client = Awaited<ReturnType<typeof patentAccess>>['supabase'];
@@ -13,10 +13,11 @@ export function currentReviewStatus(review:Awaited<ReturnType<typeof loadLatestR
  if(review.error)return null;
  return review.data?.revenue_revision===revision?review.data.status:'not_requested';
 }
-export function RevenueReview({org,product,revision,hasRevenue,canWrite,review,returnRevenue,flags}:{org:string;product:string;revision:number;hasRevenue:boolean;canWrite:boolean;review:Awaited<ReturnType<typeof loadLatestRevenueReview>>;returnRevenue:RevenueFilter;flags:{review_requested?:string;review_error?:string}}) {
+export function RevenueReview({org,product,revision,hasRevenue,canWrite,review,context,flags}:{org:string;product:string;revision:number;hasRevenue:boolean;canWrite:boolean;review:Awaited<ReturnType<typeof loadLatestRevenueReview>>;context:ReturnType<typeof productReturnContext>;flags:{review_requested?:string;review_error?:string}}) {
  const {data,error}=review;
+ const historyParams=productDetailContext(context.q,context.filter,String(context.page)).toString();
  if(error)return <section id="revenue-review"><h2>매출 검토</h2><LoadError message="매출 검토 상태를 불러오지 못했습니다."/></section>;
  const current=!!data&&data.revenue_revision===revision, status=currentReviewStatus(review,revision)??'not_requested';
  const label=reviewStatusLabel(status);
- return <section id="revenue-review"><h2>매출 검토</h2><p>입력한 매출의 근거를 운영자에게 제출하고 검토 의견을 받을 수 있습니다. 운영자 검토는 외부 감사나 매출액의 확정을 뜻하지 않습니다.</p>{flags.review_requested&&<p className="form-message" role="status">검토 요청을 접수했습니다.</p>}{flags.review_error&&<p className="form-message" role="alert">{flags.review_error==='pending'?'이미 검토 대기 중인 요청이 있습니다.':'검토를 요청하지 못했습니다. 매출 정보와 권한을 확인해 주세요.'}</p>}<p><strong>현재 상태: {label}</strong></p>{data&&!current&&<p>제품명 또는 매출이 변경되어 이전 검토는 현재 정보에 적용되지 않습니다.</p>}{current&&data.review_note&&<p>운영자 의견: {data.review_note}</p>}{data&&<p><Link className="asset-overview-link" href={`/account/organizations/${org}/products/${product}/review-history`}>검토 이력 보기</Link></p>}{canWrite&&status!=='pending'&&(hasRevenue?<RevenueReviewForm action={requestRevenueReview} mode="request" org={org} product={product} returnRevenue={returnRevenue}/>:<p>검토를 요청하려면 먼저 매출 기준연도와 매출액을 저장해 주세요.</p>)}</section>;
+ return <section id="revenue-review"><h2>매출 검토</h2><p>입력한 매출의 근거를 운영자에게 제출하고 검토 의견을 받을 수 있습니다. 운영자 검토는 외부 감사나 매출액의 확정을 뜻하지 않습니다.</p>{flags.review_requested&&<p className="form-message" role="status">검토 요청을 접수했습니다.</p>}{flags.review_error&&<p className="form-message" role="alert">{flags.review_error==='pending'?'이미 검토 대기 중인 요청이 있습니다.':'검토를 요청하지 못했습니다. 매출 정보와 권한을 확인해 주세요.'}</p>}<p><strong>현재 상태: {label}</strong></p>{data&&!current&&<p>제품명 또는 매출이 변경되어 이전 검토는 현재 정보에 적용되지 않습니다.</p>}{current&&data.review_note&&<p>운영자 의견: {data.review_note}</p>}{data&&<p><Link className="asset-overview-link" href={`/account/organizations/${org}/products/${product}/review-history${historyParams?`?${historyParams}`:''}`}>검토 이력 보기</Link></p>}{canWrite&&status!=='pending'&&(hasRevenue?<RevenueReviewForm action={requestRevenueReview} mode="request" org={org} product={product} returnRevenue={context.filter} returnQuery={context.q} returnPage={context.page}/>:<p>검토를 요청하려면 먼저 매출 기준연도와 매출액을 저장해 주세요.</p>)}</section>;
 }
