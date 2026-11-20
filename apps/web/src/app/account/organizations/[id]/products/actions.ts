@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseProduct, type ProductFormState } from '@/domain/products/validation';
-import { revenueFilter,deleteReturnQuery } from '@/domain/products/revenue-filter';
+import { revenueFilter,deleteReturnQuery,productDetailContext } from '@/domain/products/revenue-filter';
 import { classifyReviewError, type RevenueReviewFormState } from '@/domain/products/revenue-review-form';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const root=(org:string)=>`/account/organizations/${org}/products`;
@@ -15,8 +15,9 @@ export async function saveProduct(_state:ProductFormState,form:FormData):Promise
  let result;
  try {result=id?await supabase.from('product_assets').update(values).eq('organization_id',org).eq('id',id).select('id').maybeSingle():await supabase.from('product_assets').insert({...values,organization_id:org}).select('id').single();} catch{return {error:'network'};}
  if(result.error||!result.data)return {error:'save'};
- const returnRevenue=revenueFilter(form.get('return_revenue'));
- redirect(`${root(org)}/${result.data.id}?saved=1${returnRevenue?`&return_revenue=${returnRevenue}`:''}`);
+ const params=productDetailContext(form.get('return_query'),form.get('return_revenue'),form.get('return_page'));
+ params.set('saved','1');
+ redirect(`${root(org)}/${result.data.id}?${params}`);
 }
 export async function deleteProduct(form:FormData) {
  const org=String(form.get('organization')||''),id=String(form.get('product')||'');
