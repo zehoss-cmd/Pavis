@@ -3,6 +3,7 @@ test('제품 삭제는 대상을 확인하고 취소 시 실행하지 않는다'
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/product-delete');
  const admin=page.getByRole('region',{name:'관리자 목록'}),viewer=page.getByRole('region',{name:'조회자 목록'});
  await expect(viewer.getByRole('button',{name:'삭제'})).toHaveCount(0);await expect(viewer.getByRole('link',{name:'수정',exact:true})).toHaveCount(0);
+ await expect(viewer.getByRole('link',{name:'안전 제품 평가 준비 현황'})).toHaveAttribute('href',/#valuation-readiness$/);
  await expect(admin.getByRole('link',{name:'수정',exact:true})).toHaveAttribute('href',/return_revenue=missing#edit-product$/);
  await admin.getByRole('button',{name:'삭제'}).click();const dialog=page.getByRole('dialog',{name:'삭제 확인'});
  await expect(dialog).toContainText('안전 제품');await expect(dialog).toContainText('30일');await expect(dialog).toContainText('연결된 특허');
