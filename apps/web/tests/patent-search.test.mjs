@@ -26,3 +26,16 @@ test('family filter accepts only UUIDs and remains in pagination links',()=>{
  assert.equal(new URLSearchParams(patentPageQuery(search,2).slice(1)).get('family'),family);
  assert.equal(parsePatentSearch({family:'invalid'}).family,'');
 });
+
+test('clearing one patent filter preserves the others and returns to page one',()=>{
+ const family='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const search=parsePatentSearch({field:'application_number',q:'KR & 123',country:'kr',status:'granted',sort:'title',family,page:'4'});
+ for(const key of ['q','country','status']){
+  const params=new URLSearchParams(patentPageQuery({...search,[key]:''},1));
+  assert.equal(params.has(key),false);
+  assert.equal(params.has('page'),false);
+  assert.equal(params.get('family'),family);
+  assert.equal(params.get('sort'),'title');
+  for(const other of ['q','country','status'].filter(value=>value!==key))assert.equal(params.get(other),search[other]);
+ }
+});
