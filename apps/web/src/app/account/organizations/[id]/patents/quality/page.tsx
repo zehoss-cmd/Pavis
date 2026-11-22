@@ -5,6 +5,8 @@ import { pageSize, maxPage } from '@/lib/patents/search';
 import { patentQualityContext, patentQualityRules, qualityGroups, qualityView, type QualityAsset } from '@/domain/patents/quality';
 
 import { qualityCsv } from '@/domain/patents/quality-csv';
+import { OrganizationQuality } from './organization-quality';
+import { qualityColumns } from '@/lib/patents/quality-columns';
 import { QualityDownload } from './quality-download';
 
 export default async function PatentQuality({params,searchParams}:{
@@ -23,9 +25,15 @@ export default async function PatentQuality({params,searchParams}:{
  const byAsset=view.get('view')==='assets';
  const issuesOnly=view.get('issues')==='1';
  const base=`/account/organizations/${id}/patents`;
+ if(view.get('scope')==='organization')return <main className="auth-page"><div className="auth-card patent-card">
+  <h1>조직 전체 특허 품질 점검</h1>
+  <p>{organization.name} · 등록된 특허 전체를 50개 규칙으로 점검합니다.</p>
+  <Link className="asset-overview-link" href={base+'/quality'}>페이지별 점검으로</Link>
+  <OrganizationQuality key={id} base={base} canWrite={canWrite} rule={rule} page={page}/>
+ </div></main>;
  const from=(page-1)*pageSize;
  const {data,error,status}=await supabase.from('patent_assets')
-  .select('id,title,jurisdiction,family_id,rights_holder,inventors,application_number,publication_number,registration_number,filing_date,priority_date,verified_date,legal_status,source')
+  .select(qualityColumns)
   .eq('organization_id',id).order('created_at',{ascending:false}).order('id',{ascending:false}).range(from,from+pageSize);
  const context=patentQualityContext(new Date());
  const assets:QualityAsset[]=(data??[]).slice(0,pageSize);
@@ -55,6 +63,7 @@ export default async function PatentQuality({params,searchParams}:{
   <h1>특허 데이터 품질 점검</h1>
   <p>{organization.name} · 기준일 {context.today}</p>
   <p>현재 페이지의 특허를 점검합니다. 관할과 특허 상황에 따라 예외가 있을 수 있습니다.</p>
+  <Link className="asset-overview-link" href="?scope=organization" prefetch={false}>조직 전체 점검</Link>
   <Link className="asset-overview-link" href={base}>특허 목록으로</Link>
   {error&&status!==416?<LoadError message="특허 데이터를 불러오지 못했습니다."/>:<>
    <ul aria-label="현재 페이지 점검 요약">

@@ -1,0 +1,1 @@
+export const qualityColumns = 'id,title,jurisdiction,family_id,rights_holder,inventors,application_number,publication_number,registration_number,filing_date,priority_date,verified_date,legal_status,source';

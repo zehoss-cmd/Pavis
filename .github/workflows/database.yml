@@ -13,11 +13,25 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.122.1
-      - name: Start local Postgres
-        run: supabase db start
+      - name: Start isolated database and authentication services
+        run: supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - name: Apply migrations from scratch
         run: supabase db reset --local --no-seed
       - name: Run tenant isolation and member role tests
         env:
           PAVIS_TEST_DB_MODE: container
         run: bash scripts/test-db.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Run authenticated patent quality workflow
+        working-directory: apps/web
+        run: |
+          npm ci
+          npx playwright install chromium
+          export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$(supabase status --workdir ../.. -o json | jq -er '.PUBLISHABLE_KEY // .ANON_KEY')"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+          npx playwright test --config tests/integration/playwright.config.ts

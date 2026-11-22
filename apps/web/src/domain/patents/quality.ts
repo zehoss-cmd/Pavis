@@ -99,8 +99,10 @@ export const qualityGroups=['기본 정보','식별번호','날짜','상태·출
 
 export function qualityView(raw:URLSearchParams) {
  const params=new URLSearchParams();
+ const organization=raw.get('scope')==='organization';
+ if(organization)params.set('scope','organization');
  const page=Number(raw.get('page'));
- if(Number.isInteger(page)&&page>1)params.set('page',String(Math.min(page,1000)));
+ if(Number.isSafeInteger(page)&&page>1)params.set('page',String(organization?page:Math.min(page,1000)));
  const group=raw.get('group');
  if(group&&/^[1-5]$/.test(group))params.set('group',group);
  const rule=raw.get('rule');

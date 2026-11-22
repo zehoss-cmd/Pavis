@@ -6,6 +6,8 @@ insert into auth.users(id,instance_id,aud,role,email,encrypted_password,created_
 ('b0000000-0000-4000-8000-000000000003','00000000-0000-0000-0000-000000000000','authenticated','authenticated','flow-viewer@example.invalid','',now(),now()),
 ('b0000000-0000-4000-8000-000000000004','00000000-0000-0000-0000-000000000000','authenticated','authenticated','flow-ip@example.invalid','',now(),now());
 
+insert into private.revenue_reviewers(user_id) values ('b0000000-0000-4000-8000-000000000002');
+
 -- Create two organizations using the application function as their respective administrators.
 set local role authenticated;
 select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000001',true);
@@ -71,13 +73,29 @@ end $$;
 insert into public.patent_portfolio_assets(organization_id,portfolio_id,asset_id)
  values(current_setting('test.flow_org_a')::uuid,current_setting('test.flow_portfolio')::uuid,current_setting('test.flow_asset')::uuid);
 
+-- Use reviewed product revenue and its patent contribution in this test organization's draft.
+insert into public.product_assets(organization_id,name,revenue_year,revenue_amount,revenue_currency)
+ values(current_setting('test.flow_org_a')::uuid,'Flow product',2025,1000,'KRW')
+ returning set_config('test.flow_product',id::text,true);
+insert into public.product_patent_links(organization_id,product_id,patent_id)
+ values(current_setting('test.flow_org_a')::uuid,current_setting('test.flow_product')::uuid,current_setting('test.flow_asset')::uuid);
+update public.product_patent_links set contribution_rate=100 where product_id=current_setting('test.flow_product')::uuid and patent_id=current_setting('test.flow_asset')::uuid;
+select set_config('test.flow_review',public.request_product_revenue_review(current_setting('test.flow_org_a')::uuid,current_setting('test.flow_product')::uuid,'Test sales statement')::text,true);
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000002',true);
+select public.decide_product_revenue_review(current_setting('test.flow_review')::uuid,'reviewed','Statement checked');
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000001',true);
+
 -- Record and finalize both existing assessment types, then check export snapshots.
 insert into public.valuation_assessments(organization_id,asset_id,assessment_date,legal_score,technical_score,market_score,commercial_score)
  values(current_setting('test.flow_org_a')::uuid,current_setting('test.flow_asset')::uuid,'2026-01-01',1,2,3,4)
  returning set_config('test.flow_quality',id::text,true);
 update public.valuation_assessments set legal_note='legal',technical_note='technical',market_note='market',commercial_note='commercial',status='final' where id=current_setting('test.flow_quality')::uuid;
 insert into public.royalty_dcf_assessments(organization_id,asset_id,valuation_date,scenario,currency,years,base_sales,growth_rate,royalty_rate,contribution_rate,annual_cost,tax_rate,discount_rate)
- values(current_setting('test.flow_org_a')::uuid,current_setting('test.flow_asset')::uuid,'2026-01-01','base','KRW',2,1000,0,10,100,20,25,20)
+ select link.organization_id,link.patent_id,'2026-01-01','base',review.revenue_currency,2,review.revenue_amount,0,10,link.contribution_rate,20,25,20
+ from public.product_patent_links link
+ join public.product_revenue_reviews review using(organization_id,product_id)
+ where review.id=current_setting('test.flow_review')::uuid and review.status='reviewed'
+   and link.patent_id=current_setting('test.flow_asset')::uuid
  returning set_config('test.flow_dcf',id::text,true);
 update public.royalty_dcf_assessments set assumptions='Test evidence',status='final' where id=current_setting('test.flow_dcf')::uuid;
 do $$ declare q jsonb; d jsonb; begin
@@ -87,6 +105,16 @@ do $$ declare q jsonb; d jsonb; begin
  if d is null or d->>'result'<>'91.67' then raise exception 'DCF snapshot incorrect'; end if;
  delete from public.patent_portfolio_assets where asset_id=current_setting('test.flow_asset')::uuid and portfolio_id=current_setting('test.flow_portfolio')::uuid;
  begin delete from public.patent_assets where id=current_setting('test.flow_asset')::uuid; raise exception 'patent with final assessments deleted'; exception when foreign_key_violation then null; end;
+end $$;
+
+-- Unlinking permits product deletion. Restoration preserves reviewed evidence and the independent DCF.
+delete from public.product_patent_links where organization_id=current_setting('test.flow_org_a')::uuid and product_id=current_setting('test.flow_product')::uuid;
+delete from public.product_assets where id=current_setting('test.flow_product')::uuid;
+select public.registry_recycle_restore(current_setting('test.flow_org_a')::uuid,id)
+ from public.registry_recycle_list(current_setting('test.flow_org_a')::uuid) where kind='product' and record_id=current_setting('test.flow_product')::uuid;
+do $$ begin
+ if not exists(select 1 from public.product_revenue_reviews where id=current_setting('test.flow_review')::uuid and status='reviewed' and revenue_amount=1000) then raise exception 'restored product review missing'; end if;
+ if not exists(select 1 from public.royalty_dcf_assessments where id=current_setting('test.flow_dcf')::uuid and status='final' and base_sales=1000) then raise exception 'product deletion affected DCF'; end if;
 end $$;
 
 -- Reassessment creates independent drafts linked to the finalized records.
