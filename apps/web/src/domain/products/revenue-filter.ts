@@ -10,7 +10,7 @@ export function previousRevenueYear(date:Date):number {return Number(new Intl.Da
 export function productReturnContext(query:unknown,filter:unknown,page:unknown) {
  const q=typeof query==='string'?query.trim().slice(0,100):'';
  const raw=typeof page==='string'&&/^[1-9]\d{0,3}$/.test(page)?Number(page):1;
- return {q,filter:revenueFilter(filter),page:Math.min(raw,1000)};
+ return {q,filter:revenueFilter(filter),page:Math.min(raw,productMaxPage)};
 }
 
 export function productDetailContext(query:unknown,filter:unknown,page:unknown) {
@@ -27,4 +27,17 @@ export function deleteReturnQuery(query:unknown,filter:unknown,page:unknown):str
  const context=productReturnContext(query,filter,page);
  const params=new URLSearchParams(productListQuery(context.q,context.filter,context.page).slice(1));
  params.set('deleted','1');return `?${params.toString()}`;
+}
+
+export const productPageSize=25;
+export const productMaxPage=1000;
+
+export function productPageInfo(page:number,count:number,displayed:number) {
+ const last=Math.min(productMaxPage,Math.max(1,Math.ceil(count/productPageSize)));
+ return {
+  last,
+  firstItem:displayed>0?(page-1)*productPageSize+1:0,
+  lastItem:displayed>0?(page-1)*productPageSize+displayed:0,
+  capped:count>productMaxPage*productPageSize,
+ };
 }
