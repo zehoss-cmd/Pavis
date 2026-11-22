@@ -33,3 +33,10 @@ export function patentPageQuery(search: ReturnType<typeof parsePatentSearch>, pa
   const query = params.toString();
   return query ? `?${query}` : '?';
 }
+
+/** Rebuild a local list query from allowlisted search fields, never from a URL. */
+export function patentListReturnQuery(value:unknown):string {
+  if(typeof value!=='string'||value.length>4096)return '';
+  const search=parsePatentSearch(Object.fromEntries(new URLSearchParams(value)));
+  return patentPageQuery(search,search.page).slice(1);
+}

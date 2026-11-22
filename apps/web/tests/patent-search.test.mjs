@@ -39,3 +39,13 @@ test('clearing one patent filter preserves the others and returns to page one',(
   for(const other of ['q','country','status'].filter(value=>value!==key))assert.equal(params.get(other),search[other]);
  }
 });
+
+test('patent return queries preserve bounded filters and discard unrelated keys',async()=>{
+ const {patentListReturnQuery}=await import('../src/lib/patents/search.ts');
+ const family='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const search=parsePatentSearch({field:'application_number',q:'KR & 123',country:'KR',status:'granted',family,sort:'title',page:'4'});
+ const query=patentPageQuery(search,4);
+ assert.equal(patentListReturnQuery(query+'&deleted=1&redirect=https://example.org'),query.slice(1));
+ assert.equal(patentListReturnQuery(['page=4']),'');
+ assert.equal(patentListReturnQuery('page=9000'),'page=1000');
+});

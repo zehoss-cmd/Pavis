@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseFamilySearch, savedFamilyContext } from '@/lib/patents/family-search';
+import { patentListReturnQuery } from '@/lib/patents/search';
 import { patentAccess } from '@/lib/patents/access';
 import { normalizedNumber } from '@/lib/patents/csv-import';
 import type { AssetFormState } from './form-data';
@@ -61,17 +62,30 @@ export async function saveAsset(_previous:AssetFormState,form:FormData):Promise<
   try { result=asset ? await supabase.from('patent_assets').update(values).eq('id',asset).eq('organization_id',org).select('id').maybeSingle() : await supabase.from('patent_assets').insert({...values,organization_id:org}).select('id').single(); }
   catch { return {error:'network'}; }
   if(result.error || !result.data) return {error:result.error?.code==='23505' ? 'duplicate' : result.status===0 ? 'network' : 'save'};
+  const context=asset?detailReturnContext(form):new URLSearchParams();
+  context.set('saved','1');
+  redirect(`${root(org)}/${result.data.id}?${context}`);
+}
+function detailReturnContext(form:FormData) {
   const params=new URLSearchParams(read(form,'return_context'));
-  const context=asset ? savedFamilyContext({from_family:params.get('from_family'),family_q:params.get('family_q'),family_page:params.get('family_page'),return_family:params.get('return_family')}) : '';
-  redirect(`${root(org)}/${result.data.id}?saved=1${context ? '&'+context.slice(1) : ''}`);
+  const context=new URLSearchParams(savedFamilyContext({from_family:params.get('from_family'),family_q:params.get('family_q'),family_page:params.get('family_page'),return_family:params.get('return_family')}));
+  const listQuery=patentListReturnQuery(params.get('return_list'));
+  if(listQuery)context.set('return_list',listQuery);
+  return context;
 }
 export async function deleteAsset(form:FormData) {
   const org=read(form,'organization'), asset=read(form,'asset');
   if(!uuid.test(org)||!uuid.test(asset)) redirect('/account');
   const back=`${root(org)}/${asset}`, supabase=await clientForUser();
   const {data,error}=await supabase.from('patent_assets').delete().eq('organization_id',org).eq('id',asset).select('id').maybeSingle();
-  if(error || !data) redirect(`${back}?error=${error?.code==='23503'?'linked':'delete'}`);
-  redirect(`${root(org)}?deleted=1`);
+  const context=detailReturnContext(form);
+  if(error || !data) {
+    context.set('error',error?.code==='23503'?'linked':'delete');
+    redirect(`${back}?${context}`);
+  }
+  const list=new URLSearchParams(context.get('return_list')??'');
+  list.set('deleted','1');
+  redirect(`${root(org)}?${list}`);
 }
 export async function manageFamily(form:FormData) {
   const org=read(form,'organization'),family=read(form,'family'),operation=read(form,'operation'),name=read(form,'name');
