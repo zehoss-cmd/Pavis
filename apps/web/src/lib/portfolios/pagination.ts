@@ -4,6 +4,9 @@ export function parsePortfolioPage(value: unknown): number {
   if (typeof value !== 'string' || !/^[1-9]\d{0,3}$/.test(value)) return 1;
   return Math.min(Number(value), portfolioMaxPage);
 }
+export function clampPortfolioPage(page:number, count:number):number {
+  return Math.min(page, Math.max(1, Math.ceil(count / portfolioPageSize)));
+}
 export function parsePortfolioAssetQuery(value: unknown): string {
   return typeof value === 'string' ? value.trim().slice(0, 100) : '';
 }

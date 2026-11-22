@@ -1,5 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
+import { clampPortfolioPage, parsePortfolioAssetQuery, parsePortfolioPage } from '@/lib/portfolios/pagination';
+import { parseProductPatentSearchField } from '@/domain/products/patent-search';
 import { createClient } from '@/lib/supabase/server';
 import { parseProduct, type ProductFormState } from '@/domain/products/validation';
 import { deleteReturnQuery,productDetailContext } from '@/domain/products/revenue-filter';
@@ -37,6 +39,21 @@ export async function changeProductPatent(form:FormData) {
  const result=operation==='add'?await supabase.from('product_patent_links').insert({organization_id:org,product_id:product,patent_id:patent}).select('id').single():await supabase.from('product_patent_links').delete().eq('organization_id',org).eq('product_id',product).eq('patent_id',patent).select('id').maybeSingle();
  const submitted=new URLSearchParams(String(form.get('return_context')||''));
  const context=productDetailContext(submitted.get('return_query'),submitted.get('return_revenue'),submitted.get('return_page'));
+ const query=parsePortfolioAssetQuery(submitted.get('asset_query'));
+ const field=parseProductPatentSearchField(submitted.get('asset_field'));
+ const choicePage=parsePortfolioPage(submitted.get('choice_page'));
+ let linkedPage=parsePortfolioPage(submitted.get('linked_page'));
+ if(operation==='remove'&&!result.error&&result.data&&linkedPage>1){
+  const {count,error}=await supabase.from('product_patent_links').select('id',{count:'exact',head:true})
+    .eq('organization_id',org).eq('product_id',product);
+  if(!error&&count!==null) linkedPage=clampPortfolioPage(linkedPage,count);
+ }
+ if(query){
+  context.set('asset_query',query);
+  if(field!=='title')context.set('asset_field',field);
+ }
+ if(choicePage>1)context.set('choice_page',String(choicePage));
+ if(linkedPage>1)context.set('linked_page',String(linkedPage));
  if(result.error||!result.data) context.set('link_error',result.error?.code==='23505'?'duplicate':'save');
  else context.set(operation==='add'?'linked':'unlinked','1');
  redirect(`${path}?${context}#product-patents`);

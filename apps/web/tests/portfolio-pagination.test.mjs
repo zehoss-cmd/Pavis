@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePortfolioPage,portfolioPageQuery,portfolioPageSize,portfolioMaxPage} from '../src/lib/portfolios/pagination.ts';
+import {clampPortfolioPage,parsePortfolioPage,portfolioPageQuery,portfolioPageSize,portfolioMaxPage} from '../src/lib/portfolios/pagination.ts';
 test('portfolio pages are bounded positive integers',()=>{
  assert.equal(parsePortfolioPage(undefined),1);assert.equal(parsePortfolioPage('0'),1);assert.equal(parsePortfolioPage('-1'),1);
  assert.equal(parsePortfolioPage(['2']),1);assert.equal(parsePortfolioPage('2'),2);assert.equal(parsePortfolioPage('9999'),portfolioMaxPage);
@@ -35,4 +35,11 @@ test('empty candidate pages direct users to a useful next step', async () => {
  assert.equal(portfolioChoiceEmpty(1, '', 25, true).action, 'next');
  assert.equal(portfolioChoiceEmpty(2, 'AI', 0, false).action, 'previous');
  assert.equal(portfolioChoiceEmpty(1000, '', 25, true).action, 'previous');
+});
+
+test('a shrinking linked list returns the last available page',()=>{
+ assert.equal(clampPortfolioPage(3,51),3);
+ assert.equal(clampPortfolioPage(3,50),2);
+ assert.equal(clampPortfolioPage(2,0),1);
+ assert.equal(clampPortfolioPage(1,51),1);
 });
