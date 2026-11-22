@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { parseFamilySearch, savedFamilyContext } from '@/lib/patents/family-search';
+import { qualityReturnQuery } from '@/domain/patents/quality';
 import { patentListReturnQuery } from '@/lib/patents/search';
 import { patentAccess } from '@/lib/patents/access';
 import { normalizedNumber } from '@/lib/patents/csv-import';
@@ -71,6 +72,7 @@ function detailReturnContext(form:FormData) {
   const context=new URLSearchParams(savedFamilyContext({from_family:params.get('from_family'),family_q:params.get('family_q'),family_page:params.get('family_page'),return_family:params.get('return_family')}));
   const listQuery=patentListReturnQuery(params.get('return_list'));
   if(listQuery)context.set('return_list',listQuery);
+  if(params.has('return_quality'))context.set('return_quality',qualityReturnQuery(params.get('return_quality')));
   return context;
 }
 export async function deleteAsset(form:FormData) {

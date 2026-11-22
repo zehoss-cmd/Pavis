@@ -36,3 +36,15 @@ test('Korea date and calendar year boundary are stable',()=>{
  assert.deepEqual(context,{today:'2026-11-22',staleBefore:'2025-11-22'});
  assert.deepEqual(patentQualityContext(new Date('2024-02-29T00:00:00Z')),{today:'2024-02-29',staleBefore:'2023-02-28'});
 });
+
+test('quality view preserves approved conditions and excludes arbitrary destinations',async()=>{
+ const {qualityReturnQuery}=await import('../src/domain/patents/quality.ts');
+ assert.equal(qualityReturnQuery('page=2&group=3&rule=26&q=date&view=assets&issues=1&redirect=https://example.org'),'page=2&group=3&rule=26&q=date&view=assets&issues=1');
+ assert.equal(qualityReturnQuery('page=-2&group=8&rule=51&view=other&issues=0'),'');
+});
+test('quality CSV includes scope and guards spreadsheet formulas',async()=>{
+ const {qualityCsv}=await import('../src/domain/patents/quality-csv.ts');
+ const result=qualityCsv('2026-11-22',2,25,[['id','=1+1','KR','123','누락']]);
+ assert.match(result,/"기준일","페이지","점검 대상 수"/);
+ assert.match(result,/"2026-11-22","2","25","id","'=1\+1"/);
+});

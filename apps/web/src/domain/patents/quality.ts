@@ -94,3 +94,24 @@ export function patentQualityContext(now:Date):Context {
  const staleBefore=new Date(Date.UTC(year-1,month-1,Math.min(day,lastDay))).toISOString().slice(0,10);
  return {today,staleBefore};
 }
+
+export const qualityGroups=['기본 정보','식별번호','날짜','상태·출처','검토 보조'] as const;
+
+export function qualityView(raw:URLSearchParams) {
+ const params=new URLSearchParams();
+ const page=Number(raw.get('page'));
+ if(Number.isInteger(page)&&page>1)params.set('page',String(Math.min(page,1000)));
+ const group=raw.get('group');
+ if(group&&/^[1-5]$/.test(group))params.set('group',group);
+ const rule=raw.get('rule');
+ if(rule&&patentQualityRules.some(([number])=>String(number)===rule))params.set('rule',rule);
+ const q=raw.get('q')?.trim().slice(0,100);
+ if(q)params.set('q',q);
+ if(raw.get('view')==='assets')params.set('view','assets');
+ if(raw.get('issues')==='1')params.set('issues','1');
+ return params;
+}
+
+export function qualityReturnQuery(value:unknown) {
+ return typeof value==='string'&&value.length<=2048 ? qualityView(new URLSearchParams(value)).toString() : '';
+}
