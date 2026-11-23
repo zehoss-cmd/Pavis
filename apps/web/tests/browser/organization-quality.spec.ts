@@ -28,7 +28,7 @@ test('전체 점검은 실패한 중간 집계를 숨기고 다음 묶음의 특
   await expect(summary).toContainText('전체 발견 사항 27건');
   await page.getByRole('link',{name:'다음 페이지'}).click();
   await expect(page.getByRole('link',{name:/마지막 특허/})).toHaveAttribute('href',/return_quality=scope%3Dorganization%26page%3D2$/);
-  await page.getByLabel('점검 항목').selectOption('7');
+  await page.getByLabel('점검 항목',{exact:true}).selectOption('7');
   await expect(page.getByRole('heading',{name:'보완할 특허 1건'})).toBeVisible();
   await expect(page.getByRole('link',{name:/마지막 특허/})).toHaveAttribute('href',/return_quality=scope%3Dorganization%26rule%3D7$/);
   expect(calls.filter(call=>call==='28')).toHaveLength(1);

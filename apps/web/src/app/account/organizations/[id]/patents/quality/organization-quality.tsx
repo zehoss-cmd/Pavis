@@ -80,12 +80,11 @@ export function OrganizationQuality({base,canWrite,rule,page}:{
       <li>발견 사항 없음 {scan.scanned-scan.findings.length}건</li>
       <li>전체 발견 사항 {scan.total}건</li>
     </ul>
-    <label>점검 항목
-      <select value={rule} onChange={event => router.push('?'+scanQuery(Number(event.target.value),1),{scroll:false})}>
+    <label htmlFor="organization-quality-rule">점검 항목</label>
+    <select id="organization-quality-rule" value={rule} onChange={event => router.push('?'+scanQuery(Number(event.target.value),1),{scroll:false})}>
         <option value={0}>전체 규칙</option>
         {patentQualityRules.map(([number,label]) => <option key={number} value={number}>{label} · {scan.counts.get(number) ?? 0}건</option>)}
-      </select>
-    </label>
+    </select>
     <h2>보완할 특허 {filtered.length}건</h2>
     {filtered.length === 0 ? <p>선택한 조건에서 발견 사항이 없습니다.</p> :
       <ul className="asset-list">{filtered.slice((current-1)*pageSize,current*pageSize).map(asset =>
