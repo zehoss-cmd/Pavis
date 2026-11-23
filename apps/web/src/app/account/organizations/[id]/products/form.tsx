@@ -1,11 +1,12 @@
 'use client';
-import { useActionState, useState, type ChangeEvent } from 'react';
+import { useActionState, useId, useState, type ChangeEvent } from 'react';
 import { SubmitButton } from '@/components/submit-button';
 import type { Product, ProductFormState } from '@/domain/products/validation';
 import type { RevenueFilter } from '@/domain/products/revenue-filter';
 import { saveProduct } from './actions';
 export function ProductForm({org,product,previousYear,returnRevenue='', returnQuery='', returnPage=1, revenue }:{org:string;product?:Product;previousYear:number;returnRevenue?:RevenueFilter;returnQuery?:string;returnPage?:number;revenue?:Pick<Product,'revenue_year'|'revenue_amount'|'revenue_currency'>}) {
  const [state,action,pending]=useActionState(saveProduct,{error:null} as ProductFormState);
+ const currencyId=useId();
  const startingRevenue=revenue??product;
  const [values,setValues]=useState(()=>({name:product?.name||'',launch_year:product?.launch_year?.toString()||'',revenue_year:startingRevenue?.revenue_year?.toString()||String(previousYear),revenue_amount:startingRevenue?.revenue_amount?.toString()??'',revenue_currency:startingRevenue?.revenue_currency||'KRW'}));
  const change=(e:ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>setValues(v=>({...v,[e.target.name]:e.target.value}));
@@ -17,7 +18,7 @@ export function ProductForm({org,product,previousYear,returnRevenue='', returnQu
    <label>출시연도<input name="launch_year" type="number" min="1800" max="2100" step="1" value={values.launch_year} onChange={change} placeholder="예: 2024"/></label>
    <label>매출 기준연도<input name="revenue_year" type="number" min="1800" max="2100" step="1" value={values.revenue_year} onChange={change}/></label>
    <label>해당 연도 매출액<input name="revenue_amount" type="number" min="0" max="999999999999.99" step="0.01" inputMode="decimal" value={values.revenue_amount} onChange={change} placeholder="금액 입력"/></label>
-   <label>통화<select name="revenue_currency" value={values.revenue_currency} onChange={change}><option value="KRW">KRW · 원</option><option value="USD">USD · 달러</option><option value="EUR">EUR · 유로</option><option value="JPY">JPY · 엔</option></select></label>
+   <div><label htmlFor={currencyId}>통화</label><select id={currencyId} name="revenue_currency" value={values.revenue_currency} onChange={change}><option value="KRW">KRW · 원</option><option value="USD">USD · 달러</option><option value="EUR">EUR · 유로</option><option value="JPY">JPY · 엔</option></select></div>
   </div><p>{product ? '저장한 매출은 현재 매출로 표시되며 이전 연도의 매출은 이력에 남습니다. 현재 매출에 대해서 운영자 검토를 요청할 수 있습니다.' : '매출 기준연도는 전년도로 기본 설정됩니다. 매출액은 선택 입력이며 기준연도와 통화가 함께 저장됩니다.'}</p></fieldset>
   <SubmitButton>{product?'변경 저장':'제품 등록'}</SubmitButton>
  </form>;
