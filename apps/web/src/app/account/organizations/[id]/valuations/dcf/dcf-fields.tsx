@@ -1,6 +1,6 @@
 export type DcfFieldValues={valuation_date:string;scenario:string;currency:string;years:number;base_sales:number;growth_rate:number;royalty_rate:number;contribution_rate:number;annual_cost:number;tax_rate:number;discount_rate:number;assumptions:string|null};
 const scenarios:Record<string,string>={conservative:'보수',base:'기준',optimistic:'낙관'};
-export function DcfFields({item}:{item?:DcfFieldValues}) {
+export function DcfFields({item}:{item?:Partial<DcfFieldValues>}) {
  return <>
   <fieldset className="valuation-fieldset"><legend>평가 기본 정보</legend><div className="dcf-field-grid">
    <label>평가 기준일<input type="date" name="valuation_date" defaultValue={item?.valuation_date||''} required/></label>
