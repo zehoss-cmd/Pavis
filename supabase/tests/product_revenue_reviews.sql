@@ -42,4 +42,49 @@ select public.registry_recycle_restore('b1000000-0000-4000-8000-000000000001',cu
 do $$ begin if (select revenue_revision from public.product_assets where id=current_setting('test.review_product')::uuid)<>3 then raise exception 'restore lost revision';end if;if (select count(*) from public.product_revenue_reviews where product_id=current_setting('test.review_product')::uuid)<>2 then raise exception 'restore lost review history';end if;end $$;
 update public.product_assets set name='Renamed product' where id=current_setting('test.review_product')::uuid;
 do $$ begin if (select revenue_revision from public.product_assets where id=current_setting('test.review_product')::uuid)<>4 then raise exception 'name change did not invalidate review';end if;end $$;
+-- Revisit an earlier year, review it and then save a different year with another currency.
+update public.product_assets set revenue_year=2024,revenue_amount=500,revenue_currency='USD' where id=current_setting('test.review_product')::uuid;
+select set_config('test.prior_year_review',public.request_product_revenue_review('b1000000-0000-4000-8000-000000000001',current_setting('test.review_product')::uuid,'Prior year statement')::text,true);
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000002',true);
+select public.decide_product_revenue_review(current_setting('test.prior_year_review')::uuid,'reviewed','Statement checked');
+do $$ begin
+ if exists(select 1 from public.product_annual_revenue) or exists(select 1 from public.product_revenue_versions) then raise exception 'reviewer can see unsubmitted annual revenue'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000001',true);
+update public.product_assets set revenue_year=2025,revenue_amount=0,revenue_currency='KRW' where id=current_setting('test.review_product')::uuid;
+do $$ begin
+ if not exists(select 1 from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid and revenue_year=2024 and revenue_amount=500 and revenue_currency='USD' and review_status='reviewed') then raise exception 'missing reviewed prior year'; end if;
+ if not exists(select 1 from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid and revenue_year=2025 and revenue_amount=0 and review_status is null) then raise exception 'previous decision copied to changed revenue'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000004',true);
+do $$ begin
+ if (select count(*) from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid)<>2 then raise exception 'viewer missing history'; end if;
+ begin update public.product_revenue_versions set revenue_amount=100; raise exception 'viewer wrote revenue history'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000003',true);
+do $$ begin
+ if exists(select 1 from public.product_annual_revenue) or exists(select 1 from public.product_revenue_versions) then raise exception 'outsider read annual data'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','b0000000-0000-4000-8000-000000000001',true);
+delete from public.product_assets where id=current_setting('test.review_product')::uuid;
+do $$ begin
+ if exists(select 1 from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid) then raise exception 'deleted product annual revenue visible'; end if;
+end $$;
+select set_config('test.review_trash',id::text,true) from public.registry_recycle_list('b1000000-0000-4000-8000-000000000001') where record_id=current_setting('test.review_product')::uuid;
+select public.registry_recycle_restore('b1000000-0000-4000-8000-000000000001',current_setting('test.review_trash')::uuid);
+do $$ begin
+ if (select count(*) from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid)<>2 then raise exception 'annual records not restored'; end if;
+ if not exists(select 1 from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid and revenue_year=2024 and review_status='reviewed') then raise exception 'restored history lost review'; end if;
+end $$;
+
+-- Re-create the archive shape used before annual revenue was introduced.
+delete from public.product_assets where id=current_setting('test.review_product')::uuid;
+select set_config('test.review_trash',id::text,true) from public.registry_recycle_list('b1000000-0000-4000-8000-000000000001') where record_id=current_setting('test.review_product')::uuid;
+reset role;
+update private.registry_recycle_bin set snapshot=snapshot-'_annual_revenue' where id=current_setting('test.review_trash')::uuid;
+set local role authenticated;
+select public.registry_recycle_restore('b1000000-0000-4000-8000-000000000001',current_setting('test.review_trash')::uuid);
+do $$ begin
+ if not exists(select 1 from public.product_annual_revenue where product_id=current_setting('test.review_product')::uuid and revenue_year=2024 and review_status='reviewed') then raise exception 'legacy recovery did not reconstruct submitted revenue'; end if;
+end $$;
 rollback;
