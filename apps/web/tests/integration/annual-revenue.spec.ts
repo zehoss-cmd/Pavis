@@ -67,4 +67,16 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await expect(page).toHaveURL(/create=1/);
   const draft=await client.from('royalty_dcf_assessments').select('base_sales,currency,contribution_rate,status').eq('asset_id',patent.data.id).single();
   expect(draft.data).toEqual({base_sales:250,currency:'USD',contribution_rate:25,status:'draft'});
+  const other=await client.from('royalty_dcf_assessments').insert({
+    organization_id:org,asset_id:patent.data.id,valuation_date:'2026-01-01',scenario:'optimistic',currency:'USD',
+    years:2,base_sales:500,growth_rate:0,royalty_rate:10,contribution_rate:25,annual_cost:0,tax_rate:20,discount_rate:10,
+    assumptions:'[TEST] 비교용 매출 가정',
+  }).select('id').single();
+  if(other.error)throw other.error;
+  await page.goto('/account/organizations/'+org+'/valuations/dcf/compare?'+new URLSearchParams({asset:patent.data.id,date:'2026-01-01',currency:'USD'}));
+  await page.getByLabel('기준 기록',{exact:true}).selectOption({label:await page.locator('#first-record option').filter({hasText:'기준 · 초안'}).innerText()});
+  await page.getByLabel('비교 기록',{exact:true}).selectOption(other.data.id);
+  await page.getByRole('button',{name:'차이 확인'}).click();
+  await expect(page.getByRole('heading',{name:'달라진 수치 가정 1개'})).toBeVisible();
+  await expect(page.getByText('첫해 매출 · 기준 250 USD · 비교 500 USD')).toBeVisible();
 });

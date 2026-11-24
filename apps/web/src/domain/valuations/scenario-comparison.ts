@@ -23,3 +23,18 @@ export function inspectScenarioComparison(records: readonly ComparisonRecord[], 
     truncated,
   };
 }
+
+// The database returns numeric(40,2) as text to preserve all significant digits.
+export function valuationDifference(reference:string, comparison:string):string|null {
+  const cents=(value:string)=>{
+    if (!/^-?\d{1,38}(?:\.\d{1,2})?$/.test(value)) return null;
+    const [whole,fraction='']=value.split('.');
+    return BigInt(whole+fraction.padEnd(2,'0'));
+  };
+  const first=cents(reference),second=cents(comparison);
+  if (first===null||second===null) return null;
+  const delta=second-first;
+  const digits=(delta<BigInt(0)?-delta:delta).toString().padStart(3,'0');
+  const whole=BigInt(digits.slice(0,-2)).toLocaleString('ko-KR');
+  return (delta<BigInt(0)?'-':delta>BigInt(0)?'+':'')+whole+'.'+digits.slice(-2);
+}
