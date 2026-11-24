@@ -33,6 +33,14 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await page.getByRole('button',{name:'Sign in'}).click();
   await expect(page).toHaveURL(/\/account$/, {timeout:60_000});
   await page.goto('/account/organizations/'+org+'/products/'+product.id);
+  const shortcuts = page.getByRole('navigation', {name:'제품 상세 바로가기'});
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({width, height:800});
+    await shortcuts.getByRole('link', {name:'관련 특허'}).click();
+    await expect(page.locator('#product-patents h2')).toBeInViewport();
+    await shortcuts.getByRole('link', {name:'정보 수정'}).click();
+    await expect(page.getByLabel('매출 기준연도')).toBeInViewport();
+  }
   await page.getByLabel('매출 기준연도').fill('2025');
   await page.getByLabel('해당 연도 매출액').fill('123456');
   await page.getByLabel('통화',{exact:true}).selectOption('KRW');
