@@ -7,6 +7,7 @@ import { requestedAssetId } from '@/lib/patents/requested-asset';
 import { reviewStatusLabel } from '@/domain/products/revenue-review-history';
 import { DraftForm } from '../../draft-form';
 import { DcfFields } from '../dcf-fields';
+import { compareAnnualRevenue } from '@/domain/valuations/revenue-comparison';
 import { saveDcf } from '../actions';
 
 export default async function ProductDcf({params,searchParams}:{
@@ -29,12 +30,14 @@ export default async function ProductDcf({params,searchParams}:{
   const back=`/account/organizations/${id}/products/${product}`;
   const rate=link.data.contribution_rate;
   const selected=annual.data.find(row=>String(row.revenue_year)===query.year);
+  const revenuesByYear=new Map(annual.data.map(row=>[row.revenue_year,row]));
+  const comparison=(row:typeof annual.data[number])=>compareAnnualRevenue(row,revenuesByYear.get(row.revenue_year-1));
   const productName=item.data.name;
   const note=(row:typeof annual.data[number])=>`${productName} · ${row.revenue_year}년 매출 ${Number(row.revenue_amount).toLocaleString('ko-KR')} ${row.revenue_currency} · ${reviewStatusLabel(row.review_status??'not_requested')} · 특허 기여율 ${rate===null?'미입력':rate+'%'}`;
   return <main className="auth-page"><div className="auth-card patent-card">
     <Link className="asset-overview-link" href={back}>제품 상세로</Link>
     <h1>제품 매출로 금액평가 작성</h1><p>{patent.data.title} · {item.data.name}</p>
-    {selected?<><h2>금액평가 초안</h2><p>{note(selected)}</p>
+    {selected?<><h2>금액평가 초안</h2><p>{note(selected)}</p><p>{comparison(selected)}</p>
       <p>선택한 연도 매출을 첫해 매출의 시작값으로 사용합니다. 저장 전에 금액과 가정을 조정할 수 있습니다.</p>
       <Link href={`?product=${product}&asset=${asset}`}>연도 다시 선택</Link>
       <DraftForm key={selected.revenue_year} action={saveDcf}>
@@ -43,7 +46,7 @@ export default async function ProductDcf({params,searchParams}:{
         <DcfFields item={{base_sales:selected.revenue_amount,currency:selected.revenue_currency,contribution_rate:rate??undefined,assumptions:note(selected)}}/>
         <SubmitButton>초안 저장 및 계산</SubmitButton>
       </DraftForm></>:<><h2>참고할 매출 연도</h2>
-      {annual.data.length?<ul className="asset-list">{annual.data.map(row=><li key={row.revenue_year}><p>{note(row)}</p>
+      {annual.data.length?<ul className="asset-list">{annual.data.map(row=><li key={row.revenue_year}><p>{note(row)}</p><p>{comparison(row)}</p>
         <Link className="asset-overview-link" href={`?product=${product}&asset=${asset}&year=${row.revenue_year}`}>{row.revenue_year}년 자료 적용</Link>
       </li>)}</ul>:<p>등록된 연도별 매출이 없습니다.</p>}
       <Link className="asset-overview-link" href={`/account/organizations/${id}/valuations/dcf?asset=${asset}#create-assessment`}>직접 입력으로 작성</Link>

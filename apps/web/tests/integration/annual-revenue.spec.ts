@@ -52,7 +52,10 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await expect(page.getByLabel('해당 연도 매출액')).toHaveValue('250');
   await expect(page.getByLabel('통화',{exact:true})).toHaveValue('USD');
   await page.getByRole('link',{name:'제품 매출로 금액평가 작성'}).click();
+  await expect(page.getByText('전년도와 통화가 달라 비교할 수 없습니다.')).toBeVisible();
   await page.getByRole('link',{name:'2024년 자료 적용'}).click();
+  await expect(page.getByText('전년도 매출 기록 없음')).toBeVisible();
+  await expect(page.locator('[name=growth_rate]')).toHaveValue('');
   await expect(page.locator('[name=base_sales]')).toHaveValue('250');
   await expect(page.locator('[name=currency]')).toHaveValue('USD');
   await expect(page.locator('[name=contribution_rate]')).toHaveValue('25');
