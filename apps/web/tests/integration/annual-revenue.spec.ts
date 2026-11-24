@@ -82,4 +82,13 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await page.getByRole('button',{name:'차이 확인'}).click();
   await expect(page.getByRole('heading',{name:'달라진 수치 가정 1개'})).toBeVisible();
   await expect(page.getByText('첫해 매출 · 기준 250 USD · 비교 500 USD')).toBeVisible();
+  const downloadEvent=page.waitForEvent('download');
+  await page.getByRole('button',{name:'두 평가 비교 결과 CSV 다운로드'}).click();
+  const download=await downloadEvent;
+  expect(download.suggestedFilename()).toContain('pavis-dcf-comparison-2026-01-01');
+  const stream=await download.createReadStream();
+  if (!stream) throw new Error('Missing comparison export');
+  const chunks:Buffer[]=[];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  expect(Buffer.concat(chunks).toString('utf8')).toContain('"첫해 매출",250,500,"USD","변경"');
 });

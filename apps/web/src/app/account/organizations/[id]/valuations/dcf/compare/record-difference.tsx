@@ -2,16 +2,11 @@ import { valuationDifference } from '@/domain/valuations/scenario-comparison';
 import { SubmitButton } from '@/components/submit-button';
 import type { ComparisonFilter } from '@/domain/valuations/scenario-comparison';
 
-const fields={
-  years:'예측 기간',base_sales:'첫해 매출',growth_rate:'성장률',royalty_rate:'로열티율',
-  contribution_rate:'특허 기여도',annual_cost:'연 비용',tax_rate:'세율',discount_rate:'할인율',
-} as const;
-type Row=Record<keyof typeof fields,number>&{
-  id:string;result_text:string;model_version:string;status:string;scenario:string;created_at:string;assumptions:string|null;
-};
-const scenarios:Record<string,string>={base:'기준',optimistic:'낙관',conservative:'보수'};
-export function RecordDifference({records,filter,first,second,assetQuery,assetPage}:{
-  records:Row[];filter:ComparisonFilter;first?:string;second?:string;assetQuery:string;assetPage:number;
+import {comparisonCsv,comparisonFields as fields,scenarioNames as scenarios,type ComparisonRow as Row} from '@/domain/valuations/comparison-csv';
+import {CsvDownload} from '@/components/csv-download';
+
+export function RecordDifference({records,filter,title,first,second,assetQuery,assetPage}:{
+  records:Row[];title:string;filter:ComparisonFilter;first?:string;second?:string;assetQuery:string;assetPage:number;
 }) {
   const a=records.find(row=>row.id===first), b=records.find(row=>row.id===second);
   const options=records.map(row=><option key={row.id} value={row.id}>{scenarios[row.scenario]} · {row.status==='final'?'확정':'초안'} · {row.result_text} {filter.currency} · {row.created_at.slice(0,10)} · {row.id.slice(0,8)}</option>);
@@ -30,6 +25,7 @@ export function RecordDifference({records,filter,first,second,assetQuery,assetPa
     {a&&b&&a.id!==b.id&&<>
       <p>기준 {a.result_text} {filter.currency} · 비교 {b.result_text} {filter.currency}</p>
       <p><strong>평가액 차이 (비교 − 기준) {valuationDifference(a.result_text,b.result_text)??'계산 불가'} {filter.currency}</strong></p>
+      <CsvDownload csv={comparisonCsv(filter,title,a,b)} filename={`pavis-dcf-comparison-${filter.date}-${a.id}-${b.id}.csv`} label="두 평가 비교 결과 CSV 다운로드"/>
       {a.model_version!==b.model_version&&<p>평가모델이 다릅니다. 기준 {a.model_version} · 비교 {b.model_version}</p>}
       <h3>달라진 수치 가정 {changes.length}개</h3>
       {changes.length>0&&<ul>{changes.map(key=>{
