@@ -1,3 +1,6 @@
+import { CsvDownload } from '@/components/csv-download';
+import { compareAnnualRevenue } from '@/domain/valuations/revenue-comparison';
+import { numberCell, textCell } from '@/domain/valuations/csv';
 import Link from '@/components/navigation-link';
 import { LoadError } from '@/components/load-error';
 import { productDetailContext, productReturnContext } from '@/domain/products/revenue-filter';
@@ -16,19 +19,35 @@ export function AnnualRevenue({org,product,revision,rows,failed,canWrite,context
 }) {
   const path = `/account/organizations/${org}/products/${product.id}`;
   const params = productDetailContext(context.q,context.filter,String(context.page));
+  const byYear = new Map(rows.map(row => [row.revenue_year, row]));
+  const history = rows.map(row => ({
+    row,
+    current: row.revenue_year === product.revenue_year && row.revenue_revision === revision,
+    status: reviewStatusLabel(row.review_status ?? 'not_requested'),
+    comparison: compareAnnualRevenue(row, byYear.get(row.revenue_year - 1)),
+  }));
+  const csv = [
+    ['제품명', '연도', '매출액', '통화', '기록 구분', '검토 상태', '전년 대비'].map(textCell).join(','),
+    ...history.map(({row, current, status, comparison}) => [
+      textCell(product.name), numberCell(row.revenue_year), numberCell(row.revenue_amount),
+      textCell(row.revenue_currency), textCell(current ? '현재 매출' : '이전 기록'),
+      textCell(status), textCell(comparison),
+    ].join(',')),
+  ].join('\r\n');
   return <section id="annual-revenue" aria-labelledby="annual-revenue-title">
     <h2 id="annual-revenue-title">연도별 매출</h2>
     {failed ? <LoadError message="연도별 매출을 불러오지 못했습니다."/> : rows.length ? <>
       <p>연도별 마지막 저장 금액과 해당 금액의 검토 상태를 표시합니다.</p>
-      <ul className="audit-list">{rows.map(row=>{
-        const current = row.revenue_year===product.revenue_year && row.revenue_revision===revision;
+      <CsvDownload csv={"\uFEFF" + csv} filename={`pavis-product-revenue-${product.id}.csv`} label="연도별 매출 CSV 다운로드"/>
+      <ul className="audit-list">{history.map(({row, current, status, comparison})=>{
         const reviewParams = new URLSearchParams(params);
         reviewParams.set('year',String(row.revenue_year));
         const editParams = new URLSearchParams(params);
         editParams.set('revenue_edit_year',String(row.revenue_year));
         return <li key={row.revenue_year}>
           <strong>{row.revenue_year}년 · {amount.format(row.revenue_amount)} {row.revenue_currency}</strong>
-          <span>{current?'현재 매출':'이전 기록'} · {reviewStatusLabel(row.review_status??'not_requested')}</span>
+          <span>{current?'현재 매출':'이전 기록'} · {status}</span>
+          <span>{comparison}</span>
           <nav className="patent-actions" aria-label={`${row.revenue_year}년 매출 작업`}>
             <Link className="asset-overview-link" href={`${path}/review-history?${reviewParams}`}>검토 이력 보기</Link>
             {canWrite&&!current&&<Link className="asset-overview-link" href={`${path}?${editParams}#edit-product`}>정보 수정에 불러오기</Link>}

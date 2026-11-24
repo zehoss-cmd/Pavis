@@ -41,6 +41,17 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   const section=page.getByRole('region',{name:'연도별 매출'});
   await expect(section).toContainText('2025년 · 123,456 KRW');
   await expect(section).toContainText('2024년 · 250 USD');
+  await expect(section).toContainText('전년도와 통화가 달라 비교할 수 없습니다.');
+  await expect(section).toContainText('전년도 매출 기록 없음');
+  const revenueDownload = page.waitForEvent('download');
+  await section.getByRole('button', {name:'연도별 매출 CSV 다운로드'}).click();
+  const revenueFile = await revenueDownload;
+  expect(revenueFile.suggestedFilename()).toBe(`pavis-product-revenue-${product.id}.csv`);
+  const revenueStream = await revenueFile.createReadStream();
+  if (!revenueStream) throw new Error('Missing annual revenue export');
+  const revenueChunks:Buffer[] = [];
+  for await (const chunk of revenueStream) revenueChunks.push(Buffer.from(chunk));
+  expect(Buffer.concat(revenueChunks).toString('utf8')).toContain('2024,250,"USD","이전 기록","변경으로 검토 종료"');
   const prior=section.getByRole('listitem').filter({hasText:'2024년'});
   await expect(prior).toContainText('변경으로 검토 종료');
   await prior.getByRole('link',{name:'검토 이력 보기'}).click();
