@@ -24,3 +24,14 @@ test('보존된 TEST 예시는 제공처별로 열리고 실조회와 구분된�
  await expect(page.getByLabel('출원번호',{exact:true})).toHaveValue('TEST-US-PAVIS-002');
  await expect(page.getByLabel('정보 출처')).toHaveValue(/^\[TEST\]/);
 });
+test('인증 설정 전에도 공개번호를 보존해 직접 등록을 준비한다',async({page})=>{
+ await page.goto('/external-patent');
+ await page.getByLabel('데이터 제공처').selectOption('google');
+ await expect(page.getByRole('button',{name:'특허 조회'})).toBeDisabled();
+ await page.getByLabel('공개번호',{exact:true}).fill('us-test001-b1');
+ await page.getByRole('button',{name:'입력한 번호로 직접 등록'}).click();
+ const form=page.locator('section').filter({has:page.getByRole('heading',{name:'특허 정보 직접 입력'})});
+ await expect(form.getByLabel('공개번호',{exact:true})).toHaveValue('US-TEST001-B1');
+ await expect(form.getByLabel('관할 국가 코드')).toHaveValue('US');
+ await expect(form.getByLabel('출원번호',{exact:true})).toHaveValue('');
+});
