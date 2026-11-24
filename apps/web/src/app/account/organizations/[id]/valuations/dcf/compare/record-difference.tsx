@@ -5,11 +5,16 @@ import type { ComparisonFilter } from '@/domain/valuations/scenario-comparison';
 import {comparisonCsv,comparisonFields as fields,scenarioNames as scenarios,type ComparisonRow as Row} from '@/domain/valuations/comparison-csv';
 import {CsvDownload} from '@/components/csv-download';
 
+const createdTime=new Intl.DateTimeFormat('ko-KR',{
+  timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',
+  hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23',
+});
+
 export function RecordDifference({records,filter,title,first,second,assetQuery,assetPage}:{
   records:Row[];title:string;filter:ComparisonFilter;first?:string;second?:string;assetQuery:string;assetPage:number;
 }) {
   const a=records.find(row=>row.id===first), b=records.find(row=>row.id===second);
-  const options=records.map(row=>({id:row.id,label:`${scenarios[row.scenario]} · ${row.status==='final'?'확정':'초안'} · ${row.result_text} ${filter.currency} · ${row.created_at.slice(0,10)} · ${row.id.slice(0,8)}`}));
+  const options=records.map(row=>({id:row.id,label:`${scenarios[row.scenario]} · ${row.status==='final'?'확정':'초안'} · ${row.result_text} ${filter.currency} · ${createdTime.format(new Date(row.created_at))} · ${row.id.slice(0,8)}`}));
   const changes=a&&b?(Object.keys(fields) as (keyof typeof fields)[]).filter(key=>a[key]!==b[key]):[];
   return <section id="record-difference" className="scenario-review"><h2>두 평가의 차이</h2>
     <ComparisonSelection key={JSON.stringify([filter,first,second])} options={options}

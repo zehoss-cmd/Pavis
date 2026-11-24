@@ -77,6 +77,14 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await page.getByRole('link',{name:'이 평가를 기준으로 비교'}).click();
   await expect(page.getByLabel('기준 기록',{exact:true})).toHaveValue(other.data.id);
   await expect(page.getByText('비교할 두 번째 기록을 선택해 주세요.')).toBeVisible();
+  const search=page.getByLabel('비교 후보 검색');
+  await search.fill('기준 초안');
+  await expect(page.getByText('검색 결과 1 / 2건',{exact:false})).toBeVisible();
+  await expect(page.locator('#first-record optgroup[label="현재 선택"] option')).toHaveAttribute('value',other.data.id);
+  await search.fill('no-matching-test-record');
+  await expect(page.getByText('검색 결과 0 / 2건',{exact:false})).toBeVisible();
+  await expect(page.getByLabel('기준 기록',{exact:true})).toHaveValue(other.data.id);
+  await page.getByRole('button',{name:'후보 검색 초기화'}).click();
   await page.getByLabel('기준 기록',{exact:true}).selectOption({label:await page.locator('#first-record option').filter({hasText:'기준 · 초안'}).innerText()});
   await page.getByLabel('비교 기록',{exact:true}).selectOption(other.data.id);
   await page.getByRole('button',{name:'차이 확인'}).click();
