@@ -42,8 +42,9 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
     await expect(page.getByLabel('매출 기준연도')).toBeInViewport();
   }
   await page.getByLabel('매출 기준연도').fill('2025');
-  await page.getByLabel('해당 연도 매출액').fill('123456');
+  await page.getByLabel('해당 연도 매출액').fill('123,456');
   await page.getByLabel('통화',{exact:true}).selectOption('KRW');
+  await expect(page.getByText('입력 금액 · 123,456 KRW',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'변경 저장',exact:true}).click();
   await expect(page).toHaveURL(/saved=1/);
   const section=page.getByRole('region',{name:'연도별 매출'});
