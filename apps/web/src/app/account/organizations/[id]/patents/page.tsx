@@ -4,7 +4,7 @@ import { DownloadButton } from '@/components/download-button';
 import { SubmitButton } from '@/components/submit-button';
 import Link from '@/components/navigation-link';
 import { patentAccess } from '@/lib/patents/access';
-import { literalSearchPattern, maxPage, pageSize, parsePatentSearch, patentPageQuery, searchFields, type SearchParams } from '@/lib/patents/search';
+import { patentIdentifierPattern, literalSearchPattern, maxPage, pageSize, parsePatentSearch, patentPageQuery, searchFields, type SearchParams } from '@/lib/patents/search';
 import { createFamily } from './actions';
 import { AssetForm,statusLabels,type Asset,type Family } from './form';
 import { PatentCountryOverview } from './country-overview';
@@ -19,7 +19,10 @@ export default async function Patents({params,searchParams}:{params:Promise<{id:
   const from=(search.page-1)*pageSize;
   function filteredPatents(head=false) {
     let query=supabase.from('patent_assets').select('id,title,jurisdiction,application_number,legal_status',{count:'exact',head}).eq('organization_id',id);
-    if(search.q) query=query.ilike(search.field,literalSearchPattern(search.q));
+    if(search.q) {
+      const pattern=patentIdentifierPattern(search.field,search.q);
+      query=pattern?query.filter(search.field,'imatch',pattern):query.ilike(search.field,literalSearchPattern(search.q));
+    }
     if(search.country) query=query.eq('jurisdiction',search.country);
     if(search.status) query=query.eq('legal_status',search.status);
     if(search.family) query=query.eq('family_id',search.family);

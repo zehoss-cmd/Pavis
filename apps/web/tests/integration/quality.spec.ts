@@ -14,7 +14,7 @@ test('인증된 테스트 조직의 전체 건수와 현재 페이지 건수를 
   const {data:org,error}=await client.rpc('create_organization',{org_name:'Quality test'});
   if (error) throw error;
   const rows=Array.from({length:251},(_,i)=>({
-    organization_id:org,title:'검증 특허 '+i,jurisdiction:'US',rights_holder:i===0?null:'테스트 회사',
+    organization_id:org,publication_number:i===0?'US TEST001B1':null,title:'[TEST] 검증 특허 '+i,jurisdiction:'US',rights_holder:i===0?null:'테스트 회사',
   }));
   const seeded=await client.from('patent_assets').insert(rows);
   if (seeded.error) throw seeded.error;
@@ -24,6 +24,11 @@ test('인증된 테스트 조직의 전체 건수와 현재 페이지 건수를 
   await page.getByLabel('Password',{exact:true}).fill(password);
   await page.getByRole('button',{name:'Sign in'}).click();
   await expect(page).toHaveURL(/\/account$/, {timeout:60_000});
+  await page.goto('/account/organizations/'+org+'/patents/external');
+  await page.getByLabel('데이터 제공처').selectOption('google');
+  await page.getByLabel('공개번호',{exact:true}).fill('US-TEST001-B1');
+  await page.getByRole('link',{name:'조직에 등록된 특허 찾기'}).click();
+  await expect(page.getByRole('link',{name:/검증 특허 0/}).first()).toBeVisible();
   await page.goto('/account/organizations/'+org+'/patents/quality');
   await expect(page.getByLabel('현재 페이지 점검 요약')).toContainText('점검 대상 25건');
   await page.getByRole('link',{name:'조직 전체 점검',exact:true}).click();

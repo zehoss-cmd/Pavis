@@ -22,6 +22,14 @@ export function parsePatentSearch(params: SearchParams) {
   return { field, q, country, status, family, sort, page };
 }
 export function literalSearchPattern(value: string) { return `%${value.replace(/[\\%_]/g,'\\$&')}%`; }
+/** PostgREST imatch pattern for complete identifiers from the provider lookup form. */
+export function patentIdentifierPattern(field:string, value:string) {
+  const compact=value.toUpperCase().replace(/[\s-]/g,'');
+  const korean=field==='application_number' && /^[\d\s-]+$/.test(value) && /^\d{13}$/.test(compact);
+  const publication=field==='publication_number' && /^[A-Z]{2}-[A-Z0-9]{1,20}-[A-Z0-9]{1,3}$/i.test(value);
+  if (!korean && !publication) return null;
+  return compact.split('').join('[[:space:]-]*');
+}
 export function patentPageQuery(search: ReturnType<typeof parsePatentSearch>, page: number) {
   const params = new URLSearchParams();
   if (search.q) { params.set('field', search.field); params.set('q', search.q); }

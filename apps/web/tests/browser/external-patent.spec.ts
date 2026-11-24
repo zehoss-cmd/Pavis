@@ -35,3 +35,14 @@ test('인증 설정 전에도 공개번호를 보존해 직접 등록을 준비�
  await expect(form.getByLabel('관할 국가 코드')).toHaveValue('US');
  await expect(form.getByLabel('출원번호',{exact:true})).toHaveValue('');
 });
+test('번호와 관할로 현재 조직의 등록 특허를 검색한다',async({page})=>{
+ await page.goto('/external-patent');
+ const link=page.getByRole('link',{name:'조직에 등록된 특허 찾기'});
+ await expect(link).toHaveCount(0);
+ await page.getByLabel('한국 출원번호').fill('10-2005-0050026');
+ await expect(link).toHaveAttribute('href','/account/organizations/test-org/patents?field=application_number&q=1020050050026&country=KR');
+ await page.getByLabel('데이터 제공처').selectOption('google');
+ await expect(link).toHaveCount(0);
+ await page.getByLabel('공개번호',{exact:true}).fill('us-test001-b1');
+ await expect(link).toHaveAttribute('href','/account/organizations/test-org/patents?field=publication_number&q=US-TEST001-B1&country=US');
+});

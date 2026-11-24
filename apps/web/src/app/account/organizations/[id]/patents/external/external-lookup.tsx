@@ -1,6 +1,7 @@
 'use client';
 import {useActionState,useState} from 'react';
 import {patentTestRecords} from '@/lib/patent-providers/test-records';
+import Link from '@/components/navigation-link';
 import {lookupPatent} from './actions';
 import {AssetFormClient} from '../form-client';
 import type {Family} from '../form-data';
@@ -48,6 +49,10 @@ function ProviderLookup({org,families,provider,configured,lookup=lookupPatent}:P
   {mode==='lookup'&&!pending&&state.error&&<p role="alert">{errors[state.error]}</p>}
   {!korean&&<p>출처: Google Patents Public Data, IFI CLAIMS Patent Services / Google, CC BY 4.0.</p>}
  </form>
+ {valid&&<Link prefetch={false} className="asset-overview-link"
+   href={`/account/organizations/${org}/patents?${new URLSearchParams({field:korean?'application_number':'publication_number',q:normalized,country:manual.jurisdiction})}`}>
+   조직에 등록된 특허 찾기
+ </Link>}
  <p>출처를 직접 확인한 특허는 번호를 입력해 등록할 수 있습니다.</p>
  <button type="button" disabled={pending||!valid} onClick={()=>setMode('manual')}>입력한 번호로 직접 등록</button>
  <button type="button" disabled={pending} onClick={()=>setMode('sample')}>[TEST] 예시 레코드 열기</button>
