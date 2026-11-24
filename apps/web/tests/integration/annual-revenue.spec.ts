@@ -91,4 +91,11 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   const chunks:Buffer[]=[];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
   expect(Buffer.concat(chunks).toString('utf8')).toContain('"첫해 매출",250,500,"USD","변경"');
+  await page.getByRole('button',{name:'기준·비교 바꾸기'}).click();
+  await expect(page.getByRole('button',{name:'두 평가 비교 결과 CSV 다운로드'})).toHaveCount(0);
+  await page.getByRole('button',{name:'차이 확인'}).click();
+  await expect(page.getByText('첫해 매출 · 기준 500 USD · 비교 250 USD')).toBeVisible();
+  await page.getByLabel('비교 기록',{exact:true}).selectOption(other.data.id);
+  await expect(page.getByRole('button',{name:'차이 확인'})).toBeDisabled();
+  await expect(page.getByRole('button',{name:'두 평가 비교 결과 CSV 다운로드'})).toHaveCount(0);
 });
