@@ -1,5 +1,13 @@
-export type RevenueFilter='missing'|'present'|'outdated'|'';
-export function revenueFilter(value:unknown):RevenueFilter {return value==='missing'||value==='present'||value==='outdated'?value:'';}
+export const revenueFilterOptions = [
+ {value:'', label:'전체 제품'},
+ {value:'missing', label:'매출 미입력'},
+ {value:'present', label:'매출 입력됨'},
+ {value:'outdated', label:'기준연도 확인'},
+] as const;
+export type RevenueFilter = typeof revenueFilterOptions[number]['value'];
+export function revenueFilter(value:unknown):RevenueFilter {
+ return revenueFilterOptions.find(option => option.value === value)?.value ?? '';
+}
 export function productListQuery(q:string,filter:RevenueFilter,page:number) {
  const p=new URLSearchParams();if(q)p.set('q',q);if(filter)p.set('revenue',filter);if(page>1)p.set('page',String(page));const s=p.toString();return s?`?${s}`:'?';
 }

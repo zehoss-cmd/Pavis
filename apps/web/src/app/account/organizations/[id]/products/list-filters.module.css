@@ -1,0 +1,24 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+
+.filters a {
+  min-height: 44px;
+  justify-content: center;
+}
+
+.filters a[aria-current="page"] {
+  background: #395383;
+  border-color: #395383;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
