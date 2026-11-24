@@ -73,7 +73,10 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
     assumptions:'[TEST] 비교용 매출 가정',
   }).select('id').single();
   if(other.error)throw other.error;
-  await page.goto('/account/organizations/'+org+'/valuations/dcf/compare?'+new URLSearchParams({asset:patent.data.id,date:'2026-01-01',currency:'USD'}));
+  await page.goto('/account/organizations/'+org+'/valuations/dcf/'+other.data.id);
+  await page.getByRole('link',{name:'이 평가를 기준으로 비교'}).click();
+  await expect(page.getByLabel('기준 기록',{exact:true})).toHaveValue(other.data.id);
+  await expect(page.getByText('비교할 두 번째 기록을 선택해 주세요.')).toBeVisible();
   await page.getByLabel('기준 기록',{exact:true}).selectOption({label:await page.locator('#first-record option').filter({hasText:'기준 · 초안'}).innerText()});
   await page.getByLabel('비교 기록',{exact:true}).selectOption(other.data.id);
   await page.getByRole('button',{name:'차이 확인'}).click();

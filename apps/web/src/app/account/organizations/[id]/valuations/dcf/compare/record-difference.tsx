@@ -25,7 +25,8 @@ export function RecordDifference({records,filter,first,second,assetQuery,assetPa
       <label htmlFor="second-record">비교 기록</label><select id="second-record" name="second" required defaultValue={b?.id??''}><option value="">기록 선택</option>{options}</select>
       <SubmitButton>차이 확인</SubmitButton>
     </form>
-    {(first||second)&&(!a||!b||a.id===b.id)&&<p role="alert">현재 목록에서 서로 다른 두 기록을 선택해 주세요.</p>}
+    {a&&!second&&<p>비교할 두 번째 기록을 선택해 주세요.</p>}
+    {(second||first&&!a)&&(!a||!b||a.id===b.id)&&<p role="alert">현재 목록에서 서로 다른 두 기록을 선택해 주세요.</p>}
     {a&&b&&a.id!==b.id&&<>
       <p>기준 {a.result_text} {filter.currency} · 비교 {b.result_text} {filter.currency}</p>
       <p><strong>평가액 차이 (비교 − 기준) {valuationDifference(a.result_text,b.result_text)??'계산 불가'} {filter.currency}</strong></p>
