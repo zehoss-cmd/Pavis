@@ -1,6 +1,6 @@
 'use client';
 import { useActionState, useState, useId, useTransition, type ChangeEvent } from 'react';
-import { useUnsavedChanges } from '@/components/unsaved-changes';
+import { UnsavedChangesStatus } from '@/components/unsaved-changes-status';
 import { SubmitButton } from '@/components/submit-button';
 import Link from '@/components/navigation-link';
 import { saveAsset, checkApplicationNumber } from './actions';
@@ -18,7 +18,6 @@ export function AssetFormClient({org,families,asset,initial,returnContext,action
  const hasEdits=Object.entries(baseline).some(([key,value])=>values[key as keyof typeof values]!==value);
  // Lookup results are a draft until the first save.
  const shouldWarn=!pending && (hasEdits || Boolean(!asset && initial));
- useUnsavedChanges(shouldWarn);
  const hintId=useId();
  const [checking,startCheck]=useTransition();
  const [check,setCheck]=useState<{key:string; result:Awaited<ReturnType<typeof checkApplicationNumber>>}>();
@@ -75,7 +74,7 @@ export function AssetFormClient({org,families,asset,initial,returnContext,action
    <label>상태 확인일<input name="verified_date" type="date" value={values.verified_date} onChange={change}/></label>
    <label className="dcf-field-wide">정보 출처<input name="source" maxLength={500} value={values.source} onChange={change} placeholder="예: 특허공보, 내부 검토"/></label>
   </div><p>법적 상태는 입력한 정보이며, 공식 확인 결과를 뜻하지 않습니다.</p></fieldset>
-  <p role="status">{shouldWarn ? '저장하지 않은 변경사항이 있습니다.' : ''}</p>
+  <UnsavedChangesStatus active={shouldWarn}/>
   <SubmitButton>{asset ? '변경 저장' : '특허 등록'}</SubmitButton>
  </form>;
 }

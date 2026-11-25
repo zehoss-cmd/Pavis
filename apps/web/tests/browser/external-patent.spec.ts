@@ -46,3 +46,21 @@ test('번호와 관할로 현재 조직의 등록 특허를 검색한다',async(
  await page.getByLabel('공개번호',{exact:true}).fill('us-test001-b1');
  await expect(link).toHaveAttribute('href','/account/organizations/test-org/patents?field=publication_number&q=US-TEST001-B1&country=US');
 });
+test('특허 등록 중 이동을 취소하면 작성 중인 내용이 유지된다',async({page})=>{
+ await page.goto('/external-patent');
+ await page.getByLabel('한국 출원번호').fill('1020050050026');
+ await page.getByRole('button',{name:'특허 조회'}).click();
+ const title=page.getByLabel('발명의 명칭');
+ await title.fill('[TEST] 저장 전 특허');
+ await expect(page.getByText('저장하지 않은 변경사항이 있습니다.',{exact:true})).toBeVisible();
+ const [message]=await Promise.all([
+  page.waitForEvent('dialog').then(async dialog=>{
+   const message=dialog.message();
+   await dialog.dismiss();
+   return message;
+  }),
+  page.getByRole('link',{name:'조직에 등록된 특허 찾기'}).click(),
+ ]);
+ expect(message).toContain('저장하지 않은 변경사항');
+ await expect(title).toHaveValue('[TEST] 저장 전 특허');
+});
