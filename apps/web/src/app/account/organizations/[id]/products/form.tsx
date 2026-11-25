@@ -1,5 +1,6 @@
 'use client';
 import { useActionState, useId, useState, type ChangeEvent } from 'react';
+import { useUnsavedChanges } from '@/components/unsaved-changes';
 import { SubmitButton } from '@/components/submit-button';
 import { normalizeProductAmount, previewRevenueChange, productAmountPattern, type Product, type ProductFormState } from '@/domain/products/validation';
 import type { RevenueFilter } from '@/domain/products/revenue-filter';
@@ -13,6 +14,7 @@ export function ProductForm({org,product,previousYear,returnRevenue='', returnQu
  const [values,setValues]=useState(()=>productFormValues(previousYear,product,revenue));
  const [beforeRestore,setBeforeRestore]=useState<typeof values|null>(null);
  const hasEdits=Object.entries(savedValues).some(([key,value])=>values[key as keyof typeof values]!==value);
+ useUnsavedChanges(hasEdits && !pending);
  function restore() {
   if(beforeRestore) {
    setValues(beforeRestore);
@@ -55,6 +57,7 @@ export function ProductForm({org,product,previousYear,returnRevenue='', returnQu
   {product && <button type="button" className="asset-overview-link" disabled={pending || (!hasEdits && !beforeRestore)} onClick={restore}>
    {beforeRestore ? '복원 취소' : '저장된 값으로 복원'}
   </button>}
+  <p role="status">{hasEdits && !pending ? '저장하지 않은 변경사항이 있습니다.' : ''}</p>
   <SubmitButton>{product?'변경 저장':'제품 등록'}</SubmitButton>
  </form>;
 }

@@ -44,6 +44,15 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await page.getByLabel('매출 기준연도').fill('2025');
   await page.getByLabel('해당 연도 매출액').fill('123,456');
   await page.getByLabel('통화',{exact:true}).selectOption('KRW');
+  const [leaveMessage] = await Promise.all([
+    page.waitForEvent('dialog').then(async dialog => {
+      await dialog.dismiss();
+      return dialog.message();
+    }),
+    page.getByRole('link',{name:'제품 목록으로',exact:true}).click(),
+  ]);
+  expect(leaveMessage).toContain('저장하지 않은 변경사항');
+  await expect(page.getByLabel('해당 연도 매출액')).toHaveValue('123,456');
   const changePreview = page.getByRole('region',{name:'매출 변경 미리보기'});
   await page.getByRole('button',{name:'저장된 값으로 복원'}).click();
   await expect(page.getByLabel('해당 연도 매출액')).toHaveValue('250');
