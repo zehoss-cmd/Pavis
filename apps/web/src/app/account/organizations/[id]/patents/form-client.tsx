@@ -1,5 +1,6 @@
 'use client';
 import { useActionState, useState, useId, useTransition, type ChangeEvent } from 'react';
+import { useUnsavedChanges } from '@/components/unsaved-changes';
 import { SubmitButton } from '@/components/submit-button';
 import Link from '@/components/navigation-link';
 import { saveAsset, checkApplicationNumber } from './actions';
@@ -7,12 +8,17 @@ import type { PatentLookup } from '@/lib/patent-providers/types';
 import { statusLabels, type Asset, type Family, type AssetFormState } from './form-data';
 export function AssetFormClient({org,families,asset,initial,returnContext,action=saveAsset}:{org:string;families:Family[];asset?:Asset;initial?:PatentLookup;returnContext?:string;action?:typeof saveAsset}) {
  const [state,formAction,pending]=useActionState(action,{error:null} as AssetFormState);
- const [values,setValues]=useState(()=>({
+ const [baseline]=useState(()=>({
   title:asset?.title || initial?.title || '',jurisdiction:asset?.jurisdiction || initial?.jurisdiction || '',family:asset?.family_id || '',
   application_number:asset?.application_number || initial?.application_number || '',publication_number:asset?.publication_number || initial?.publication_number || '',registration_number:asset?.registration_number || initial?.registration_number || '',
   rights_holder:asset?.rights_holder || initial?.rights_holder || '',inventors:asset?.inventors || '',priority_date:asset?.priority_date || '',filing_date:asset?.filing_date || initial?.filing_date || '',
   legal_status:asset?.legal_status || 'unknown',verified_date:asset?.verified_date || '',source:asset?.source || initial?.source || '',
  }));
+ const [values,setValues]=useState(baseline);
+ const hasEdits=Object.entries(baseline).some(([key,value])=>values[key as keyof typeof values]!==value);
+ // Lookup results are a draft until the first save.
+ const shouldWarn=!pending && (hasEdits || Boolean(!asset && initial));
+ useUnsavedChanges(shouldWarn);
  const hintId=useId();
  const [checking,startCheck]=useTransition();
  const [check,setCheck]=useState<{key:string; result:Awaited<ReturnType<typeof checkApplicationNumber>>}>();
@@ -69,6 +75,7 @@ export function AssetFormClient({org,families,asset,initial,returnContext,action
    <label>상태 확인일<input name="verified_date" type="date" value={values.verified_date} onChange={change}/></label>
    <label className="dcf-field-wide">정보 출처<input name="source" maxLength={500} value={values.source} onChange={change} placeholder="예: 특허공보, 내부 검토"/></label>
   </div><p>법적 상태는 입력한 정보이며, 공식 확인 결과를 뜻하지 않습니다.</p></fieldset>
+  <p role="status">{shouldWarn ? '저장하지 않은 변경사항이 있습니다.' : ''}</p>
   <SubmitButton>{asset ? '변경 저장' : '특허 등록'}</SubmitButton>
  </form>;
 }
