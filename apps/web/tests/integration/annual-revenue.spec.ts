@@ -45,6 +45,11 @@ test('지난 연도 매출을 유지하고 검토 이력과 수정 화면으로 
   await page.getByLabel('해당 연도 매출액').fill('123,456');
   await page.getByLabel('통화',{exact:true}).selectOption('KRW');
   const changePreview = page.getByRole('region',{name:'매출 변경 미리보기'});
+  await page.getByRole('button',{name:'저장된 값으로 복원'}).click();
+  await expect(page.getByLabel('해당 연도 매출액')).toHaveValue('250');
+  await expect(changePreview).toHaveCount(0);
+  await page.getByRole('button',{name:'복원 취소'}).click();
+  await expect(page.getByLabel('해당 연도 매출액')).toHaveValue('123,456');
   await expect(changePreview).toContainText('2024년 · 250 USD');
   await expect(changePreview).toContainText('2025년 · 123,456 KRW');
   await expect(page.getByText('입력 금액 · 123,456 KRW',{exact:true})).toBeVisible();
