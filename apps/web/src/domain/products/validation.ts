@@ -16,3 +16,24 @@ export function parseProduct(form:FormData) {
  if(!name||Array.from(name).length>200||(launch&&!productYear(launch))||(amount&&(!productYear(revenueYear)||normalizeProductAmount(amount)===null||!['KRW','USD','EUR','JPY'].includes(currency)))) return null;
  return {name,launch_year:launch?Number(launch):null,revenue_year:amount?Number(revenueYear):null,revenue_amount:normalizeProductAmount(amount),revenue_currency:amount?currency:null};
 }
+
+type RevenueSnapshot = Pick<Product, 'revenue_year'|'revenue_amount'|'revenue_currency'>;
+type RevenueDraft = {revenue_year:string; revenue_amount:string; revenue_currency:string};
+const revenueFormatter = new Intl.NumberFormat('ko-KR', {maximumFractionDigits:2});
+
+function describeRevenue(snapshot:RevenueSnapshot):string {
+ return snapshot.revenue_amount===null ? '매출 미입력'
+  : `${snapshot.revenue_year}년 · ${revenueFormatter.format(snapshot.revenue_amount)} ${snapshot.revenue_currency}`;
+}
+
+export function previewRevenueChange(current:RevenueSnapshot, draft:RevenueDraft) {
+ const amount=normalizeProductAmount(draft.revenue_amount);
+ const year=productYear(draft.revenue_year);
+ if(draft.revenue_amount!=='' && (amount===null || year===null)) return null;
+ const next:RevenueSnapshot=amount===null
+  ? {revenue_amount:null,revenue_year:null,revenue_currency:null}
+  : {revenue_amount:Number(amount),revenue_year:year,revenue_currency:draft.revenue_currency};
+ if(current.revenue_amount===next.revenue_amount && current.revenue_year===next.revenue_year
+  && current.revenue_currency===next.revenue_currency) return null;
+ return {before:describeRevenue(current),after:describeRevenue(next)};
+}

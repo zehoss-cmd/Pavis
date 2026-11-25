@@ -1,7 +1,7 @@
 'use client';
 import { useActionState, useId, useState, type ChangeEvent } from 'react';
 import { SubmitButton } from '@/components/submit-button';
-import { normalizeProductAmount, productAmountPattern, type Product, type ProductFormState } from '@/domain/products/validation';
+import { normalizeProductAmount, previewRevenueChange, productAmountPattern, type Product, type ProductFormState } from '@/domain/products/validation';
 import type { RevenueFilter } from '@/domain/products/revenue-filter';
 import { saveProduct } from './actions';
 export function ProductForm({org,product,previousYear,returnRevenue='', returnQuery='', returnPage=1, revenue }:{org:string;product?:Product;previousYear:number;returnRevenue?:RevenueFilter;returnQuery?:string;returnPage?:number;revenue?:Pick<Product,'revenue_year'|'revenue_amount'|'revenue_currency'>}) {
@@ -12,6 +12,7 @@ export function ProductForm({org,product,previousYear,returnRevenue='', returnQu
  const [values,setValues]=useState(()=>({name:product?.name||'',launch_year:product?.launch_year?.toString()||'',revenue_year:startingRevenue?.revenue_year?.toString()||String(previousYear),revenue_amount:startingRevenue?.revenue_amount?.toString()??'',revenue_currency:startingRevenue?.revenue_currency||'KRW'}));
  const amount=normalizeProductAmount(values.revenue_amount);
  const invalidAmount=values.revenue_amount!=='' && amount===null;
+ const preview=product ? previewRevenueChange(product,values) : null;
  const change=(e:ChangeEvent<HTMLInputElement|HTMLSelectElement>)=>setValues(v=>({...v,[e.target.name]:e.target.value}));
  const messages={invalid:'입력 내용을 확인해 주세요. 매출액은 0 이상의 숫자로 소수점 둘째 자리까지 입력할 수 있습니다.',save:'저장하지 못했습니다. 입력 내용과 권한을 확인해 주세요.',network:'연결 오류가 발생했습니다. 저장 여부를 확인한 뒤 다시 시도해 주세요.',session:'로그인 상태를 확인할 수 없습니다. 다시 로그인해 주세요.'};
  return <form action={action} className="patent-form" aria-busy={pending} onReset={e=>e.preventDefault()}>
@@ -27,6 +28,14 @@ export function ProductForm({org,product,previousYear,returnRevenue='', returnQu
       : '빈칸은 매출 미입력으로, 0은 매출 0으로 저장됩니다.'}</small></div>
    <div><label htmlFor={currencyId}>통화</label><select id={currencyId} name="revenue_currency" value={values.revenue_currency} onChange={change}><option value="KRW">KRW · 원</option><option value="USD">USD · 달러</option><option value="EUR">EUR · 유로</option><option value="JPY">JPY · 엔</option></select></div>
   </div><p>{product ? '저장한 매출은 현재 매출로 표시되며 이전 연도의 매출은 이력에 남습니다. 현재 매출에 대해서 운영자 검토를 요청할 수 있습니다.' : '매출 기준연도는 전년도로 기본 설정됩니다. 매출액은 선택 입력이며 기준연도와 통화가 함께 저장됩니다.'}</p></fieldset>
+  {preview && <section className="valuation-fieldset" aria-label="매출 변경 미리보기">
+   <h3>매출 변경 미리보기</h3>
+   <dl className="dcf-field-grid">
+    <div><dt>현재 저장된 매출</dt><dd>{preview.before}</dd></div>
+    <div><dt>저장 후 매출</dt><dd>{preview.after}</dd></div>
+   </dl>
+   <p>저장하면 이 제품의 대기 중인 매출 검토 요청이 종료됩니다.</p>
+  </section>}
   <SubmitButton>{product?'변경 저장':'제품 등록'}</SubmitButton>
  </form>;
 }
